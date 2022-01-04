@@ -18,7 +18,11 @@
 set(PROXY_STRESS_TEST_RUNNER "WPEFramework_proxypool_stress_test")
 
 add_executable(${PROXY_STRESS_TEST_RUNNER}
-   proxy_pool_stress_test.cpp
+   StressTestExecutionStrategies.cpp
+   StressTestManager.cpp
+   StressTestProxyTypes.cpp
+   StressTestTrafficGenerators.cpp
+
 )
 
 target_compile_definitions(${PROXY_STRESS_TEST_RUNNER}
@@ -31,9 +35,6 @@ target_compile_definitions(${PROXY_STRESS_TEST_RUNNER}
 
 target_link_libraries(${PROXY_STRESS_TEST_RUNNER} 
     WPEFrameworkCore
-    WPEFrameworkTracing
-    WPEFrameworkCOM
-    WPEFrameworkWebSocket
 )
 
 install(
