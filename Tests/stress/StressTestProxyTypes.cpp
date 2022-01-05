@@ -21,73 +21,129 @@
 #define MODULE_NAME ProxyPoolStressTest
 #include <core/core.h>
 #include <unistd.h>
-#include "StressTestProxyTypes.h"
+#include "StressTestUtil.h"
 #include "StressTestManager.h"
 
 namespace WPEFramework {
 namespace StressTest {
 
 //Start of CUT (Class Under Test)
+struct TestStruct {
+    TestStruct():_a(-1){}
+    TestStruct(int i):_a(i){}
+    ~TestStruct() = default;
+    const int getA() const{return _a;}
+  private:
+    int _a;
+};
 
+class ProxyClassStressTest: public LoadTestInterface {
+  public:
+    ProxyClassStressTest() = delete;
+    ProxyClassStressTest(const ProxyClassStressTest& ) = delete;
+    ProxyClassStressTest& operator=(const ProxyClassStressTest&) = delete;
+    ProxyClassStressTest(uint32_t maxStress): _list(), _maxStress(maxStress) {
 
-ProxyClassStressTest::~ProxyClassStressTest() {
-  if (_list.size() > 0) {
-    _list.clear();
-  }
-}
-void ProxyClassStressTest::DecreaseStress(uint32_t fold) {
-  uint32_t index = 1;
-  do {
-    // std::cout<<"Removing element from the list\n";
-    if(_list.size() > 0) {
-      _list.erase(_list.begin());
     }
-    index++;
-  }while(index < fold);
-  return;
-}
-void ProxyClassStressTest::MaxStress() {
-  IncreaseStress(_maxStress);
-}
-void ProxyClassStressTest::NoStress() {
-  _list.clear();
-}
-void ProxyClassStressTest::Cleanup() {
-  return NoStress();
-}
+    virtual void IncreaseStress(uint32_t fold = 0) = 0;
+    ~ProxyClassStressTest() {
+      if (_list.size() > 0) {
+        _list.clear();
+      }
+    }
+    void DecreaseStress(uint32_t fold = 0 ) {
+      uint32_t index = 1;
+      do {
+        // std::cout<<"Removing element from the list\n";
+        if(_list.size() > 0) {
+          _list.erase(_list.begin());
+        }
+        index++;
+      }while(index < fold);
+      return;
+    }
+    void MaxStress() {
+      IncreaseStress(_maxStress);
+    }
+    void NoStress() {
+      _list.clear();
+    }
+    void Cleanup() {
+      return NoStress();
+    }
  
-void ProxyPoolStressTest::IncreaseStress(uint32_t fold) {
-  uint32_t index = 1;
-  do {
-    // std::cout<<"Adding element to the list: fold Value: "<<fold<<" index:"<<index<<"\n";
-    _list.push_back(_testObject.Element());
-    index++;
-  }while(index < fold);
-  return;
-}
+  protected:
+    std::list<Core::ProxyType<TestStruct>> _list;
+    uint32_t _maxStress;
+
+};
+
+class ProxyPoolStressTest: public ProxyClassStressTest {
+  public:
+    ProxyPoolStressTest() = delete;
+    ProxyPoolStressTest(const ProxyPoolStressTest&) = delete;
+    ProxyPoolStressTest& operator=(const ProxyPoolStressTest&) = delete;
+    ProxyPoolStressTest(uint32_t maxStress):ProxyClassStressTest(maxStress) {
+    }
+    ~ProxyPoolStressTest() = default;
+    
+    void IncreaseStress(uint32_t fold = 0){
+      uint32_t index = 1;
+      do {
+        _list.push_back(_testObject.Element());
+        index++;
+      }while(index < fold);
+      return;
+    }
+  private:
+    static Core::ProxyPoolType<TestStruct> _testObject;
+};
+class ProxyListStressTest: public ProxyClassStressTest {
+  public:
+    ProxyListStressTest() = delete;
+    ProxyListStressTest(const ProxyListStressTest&) = delete;
+    ProxyListStressTest& operator=(const ProxyListStressTest&) = delete;
+    ProxyListStressTest(uint32_t maxStress):ProxyClassStressTest(maxStress) {
+    }
+    ~ProxyListStressTest() = default;
+    
+    void IncreaseStress(uint32_t fold = 0){
+      uint32_t index = 1;
+      do {
+        _list.push_back(_testObject.Instance<TestStruct>());
+        index++;
+      }while(index < fold);
+      return;
+    }
+  private:
+    static Core::ProxyListType<TestStruct> _testObject;
+};
+class ProxyMapStressTest: public ProxyClassStressTest {
+  public:
+    ProxyMapStressTest() = delete;
+    ProxyMapStressTest(const ProxyMapStressTest&) = delete;
+    ProxyMapStressTest& operator=(const ProxyMapStressTest&) = delete;
+    ProxyMapStressTest(uint32_t maxStress): ProxyClassStressTest(maxStress) {
+
+    }
+    ~ProxyMapStressTest() = default;
+    
+    void IncreaseStress(uint32_t fold = 0){
+      uint32_t index = 1;
+      do {
+        WPEFramework::Core::Time now = WPEFramework::Core::Time::Now();
+        _list.push_back(_testObject.Instance<TestStruct>(now.Ticks()));
+        index++;
+      }while(index < fold);
+      return;
+    }
+  private:
+    static Core::ProxyMapType<uint64_t, TestStruct> _testObject;
+};
+
 Core::ProxyPoolType<TestStruct> ProxyPoolStressTest::_testObject(1024);
 
-void ProxyListStressTest::IncreaseStress(uint32_t fold) {
-  uint32_t index = 1;
-  do {
-    _list.push_back(_testObject.Instance<TestStruct>());
-    index++;
-  }while(index < fold);
-  return;
-}
-
 Core::ProxyListType<TestStruct> ProxyListStressTest::_testObject;
-
-void ProxyMapStressTest::IncreaseStress(uint32_t fold) {
-  uint32_t index = 1;
-  do {
-    WPEFramework::Core::Time now = WPEFramework::Core::Time::Now();
-    _list.push_back(_testObject.Instance<TestStruct>(now.Ticks()));
-    index++;
-  }while(index < fold);
-  return;
-}
-    
 
 Core::ProxyMapType<uint64_t, TestStruct> ProxyMapStressTest::_testObject;
 
@@ -95,20 +151,23 @@ Core::ProxyMapType<uint64_t, TestStruct> ProxyMapStressTest::_testObject;
 }
 
 void performTest(uint32_t testObj, uint32_t duration, uint32_t freq, uint32_t maxMem){
+  WPEFramework::StressTest::TestManager tm(duration, freq, maxMem);
   string objectName;
   switch(testObj) {
     case 0:
     objectName = "ProxyPool";
+    tm.SetTestObject(new WPEFramework::StressTest::ProxyPoolStressTest(maxMem));
     break;
     case 1:
     objectName = "ProxyMap";
+    tm.SetTestObject(new WPEFramework::StressTest::ProxyMapStressTest(maxMem));
     break;
     case 2:
     objectName = "ProxyList";
+    tm.SetTestObject(new WPEFramework::StressTest::ProxyListStressTest(maxMem));
     break;
   }
   std::cout<<"Testing object: "<<objectName<<'\n';
-  WPEFramework::StressTest::TestManager tm(duration, freq, maxMem, objectName);
   tm.StartTest();
   return;
 }

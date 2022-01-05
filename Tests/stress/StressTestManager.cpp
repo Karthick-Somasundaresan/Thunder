@@ -25,61 +25,77 @@
 namespace WPEFramework {
 namespace StressTest {
 
-    void TestManager::NotifyTestComplete() {
-      _cs.Unlock();
-      return;
-    }
-    void TestManager::NotifyTestComplete(std::map<uint64_t, int32_t>& report) /*override*/ {
-      std::cout<<"Test Completed\n";
-      for(const auto & elem : report) {
-        _masterReport.insert(std::pair<uint64_t, int32_t>(elem.first, elem.second));
-      }
-      std::cout<<"Timer Completed\n";
-      _cs.Unlock();
-      return;
+void TestManager::NotifyTestComplete() {
+  _cs.Unlock();
+  return;
+}
+void TestManager::NotifyTestComplete(std::map<uint64_t, int32_t>& report) /*override*/ {
+  std::cout<<"Test Completed\n";
+  for(const auto & elem : report) {
+    _masterReport.insert(std::pair<uint64_t, int32_t>(elem.first, elem.second));
+  }
+  std::cout<<"Timer Completed\n";
+  _cs.Unlock();
+  return;
 
-    }
+}
 
-    void TestManager::generateReport() {
-      int32_t peak{1};
-      int32_t total{0};
-      uint32_t noOfRequest = std::count_if(_masterReport.cbegin(), _masterReport.cend(), [](std::pair<uint64_t, int32_t> element){ return element.second > 0? true:false;});
-      uint32_t noOfRelease = std::count_if(_masterReport.cbegin(), _masterReport.cend(), [](std::pair<uint64_t, int32_t> element){ return element.second < 0? true:false;});
-      auto lambda =  [&peak, &total](std::pair<uint64_t, int32_t> element)mutable{
+void TestManager::generateReport() {
+  int32_t peak{1};
+  int32_t total{0};
+  uint32_t noOfRequest = std::count_if(_masterReport.cbegin(), _masterReport.cend(), [](std::pair<uint64_t, int32_t> element){ return element.second > 0? true:false;});
+  uint32_t noOfRelease = std::count_if(_masterReport.cbegin(), _masterReport.cend(), [](std::pair<uint64_t, int32_t> element){ return element.second < 0? true:false;});
+  auto lambda =  [&peak, &total](std::pair<uint64_t, int32_t> element)mutable{
                         total += element.second;
-			if (total > peak)
-			{
-			  peak = total;
-			}};
-      std::for_each(_masterReport.begin(), _masterReport.end(), lambda);
-      std::cout<<"No. of Operation: "<<_masterReport.size()<<"\n";
-      std::cout<<"No. of Request: "<< noOfRequest<<"\n";
-      std::cout<<"No. of Release: "<< noOfRelease<<"\n";
-      std::cout<<"Peak request: "<< peak<<"\n";
+      if (total > peak)
+      {
+        peak = total;
+      }};
+  std::for_each(_masterReport.begin(), _masterReport.end(), lambda);
+  std::cout<<"No. of Operation: "<<_masterReport.size()<<"\n";
+  std::cout<<"No. of Request: "<< noOfRequest<<"\n";
+  std::cout<<"No. of Release: "<< noOfRelease<<"\n";
+  std::cout<<"Peak request: "<< peak<<"\n";
 
 
-      return;
-    }
+  return;
+}
     
-    void TestManager::WaitForTestToComplete() {
-      while(_timerCount > 0) {
-        _timerCount--;
-        _cs.Lock();
-      }
-      for(const auto& iter: _taskExecutionList) {
-        iter->Cleanup();
-      }
-      generateReport();
-      return;
+void TestManager::WaitForTestToComplete() {
+  while(_timerCount > 0) {
+  _timerCount--;
+  _cs.Lock();
+  }
+  for(const auto& iter: _taskExecutionList) {
+    iter->Cleanup();
+  }
+  generateReport();
+  return;
+}
+void TestManager::StartTest() {
+  ASSERT(_loadTestObject != nullptr);
+  if(_freq > 0) {
+
+    for (const auto iter: _trafficGeneratorFactory.getAllTrafficGenerators()){
+      _taskExecutionList.emplace_back(new LinearTimedTaskExecutor(this, _loadTestObject, iter));
     }
-    void TestManager::StartTest() {
-      for(const auto& iter: _taskExecutionList) {
-        iter->ExecuteTest();
-        _timerCount++;
-      }
-      WaitForTestToComplete();
-      std::cout<<"All tests completed\n";
-    }
+  }
+  else {
+    _taskExecutionList.emplace_back(new OnlyLoadThreadTaskExecutor(this, _loadTestObject, _duration));
+    _taskExecutionList.emplace_back(new OnlyUnLoadThreadTaskExecutor(this, _loadTestObject, _duration));
+  }
+  for(const auto& iter: _taskExecutionList) {
+    iter->ExecuteTest();
+    _timerCount++;
+  }
+  WaitForTestToComplete();
+  std::cout<<"All tests completed\n";
+}
+
+void TestManager::SetTestObject(LoadTestInterface* loadTestObject) {
+  ASSERT(loadTestObject != nullptr);
+  _loadTestObject = loadTestObject;
+}
 
 } // namespace StressTest
 
