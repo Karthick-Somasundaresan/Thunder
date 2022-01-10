@@ -1,5 +1,6 @@
 option(LOADER_TEST "Utility to load a plugin in isolation." OFF)
 option(HTTPSCLIENT_TEST "Example how to do https requests with Thunder." OFF)
+option(STRESS_TEST "Stress test app." OFF)
 
 if(BUILD_TESTS)
     add_subdirectory(unit)

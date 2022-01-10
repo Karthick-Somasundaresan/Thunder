@@ -35,12 +35,12 @@ TEST(test_frame, simple_set)
     FrameType<0> obj2(arr,15);
     uint16_t len = 15;
     uint16_t len1 = 13;
-    const uint16_t offset = 0;
-    EXPECT_EQ(obj1.SetBuffer<uint64_t>(offset,len,arr),23);
-    EXPECT_EQ(obj1.GetBuffer<uint64_t>(offset,len1,arr1),23);
+    const uint8_t offset = 0;
+    EXPECT_EQ(obj1.SetBuffer<uint8_t>(offset,len,arr),23);
+    EXPECT_EQ(obj1.GetBuffer<uint8_t>(offset,len1,arr1),23);
 
     FrameType<BLOCKSIZE>::Writer obj3(obj1,offset);
-    obj3.Buffer<uint64_t>(15,arr);
+    obj3.Buffer<uint8_t>(15,arr);
     obj3.Copy(13, arr1);
     obj3.Number<uint16_t>(4);
     obj3.Boolean(TRUE);
