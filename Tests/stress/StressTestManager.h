@@ -24,7 +24,20 @@
 #include "StressTestExecutionStrategies.h"
 namespace WPEFramework {
 namespace StressTest {
+struct TestManagerInterface {
+    virtual void NotifyTestComplete(std::map<uint64_t, int32_t>& report) = 0;
+    virtual void NotifyTestComplete() = 0;
+    virtual ~TestManagerInterface() = default;
+};
 
+struct LoadTestInterface {
+    virtual void IncreaseStress(uint32_t fold = 0) = 0;
+    virtual void DecreaseStress(uint32_t fold = 0) = 0;
+    virtual void MaxStress() = 0;
+    virtual void NoStress() = 0;
+    virtual void Cleanup() = 0;
+    virtual ~LoadTestInterface() = default;
+};
 class TestManager: public TestManagerInterface {
   public:
     TestManager() = delete;

@@ -18,7 +18,6 @@
  */
 
 #define MODULE_NAME ProxyPoolStressTest
-#include "StressTestUtil.h"
 #include "StressTestManager.h"
 #include "StressTestExecutionStrategies.h"
 

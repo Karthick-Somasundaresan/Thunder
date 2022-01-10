@@ -19,6 +19,7 @@
 
 #define MODULE_NAME ProxyPoolStressTest
 #include "StressTestExecutionStrategies.h"
+#include "StressTestManager.h"
 
 
 namespace WPEFramework {

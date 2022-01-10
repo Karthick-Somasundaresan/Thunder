@@ -16,12 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include <iostream>
 #define MODULE_NAME ProxyPoolStressTest
 #include <core/core.h>
 #include <unistd.h>
-#include "StressTestUtil.h"
 #include "StressTestManager.h"
 
 namespace WPEFramework {
@@ -30,7 +28,9 @@ namespace StressTest {
 //Start of CUT (Class Under Test)
 struct TestStruct {
     TestStruct():_a(-1){}
-    TestStruct(int i):_a(i){}
+    explicit TestStruct(int i):_a(i){}
+    TestStruct(const TestStruct&) = delete;
+    TestStruct& operator=(const TestStruct&) = delete;
     ~TestStruct() = default;
     const int getA() const{return _a;}
   private:

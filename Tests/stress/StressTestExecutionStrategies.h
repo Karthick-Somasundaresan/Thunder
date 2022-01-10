@@ -28,7 +28,6 @@
 #include <stdio.h>
 #include <memory>
 #include <algorithm>
-#include "StressTestUtil.h"
 #include "StressTestTrafficGenerator.h"
 
 
@@ -36,7 +35,8 @@ namespace WPEFramework {
 namespace StressTest {
 
 
-
+class TestManagerInterface;
+class LoadTestInterface;
 //Start of Strategies
 struct TaskExecutionInterface {
     virtual void ExecuteTest() = 0;
