@@ -15,28 +15,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set(PROXY_STRESS_TEST_RUNNER "WPEFramework_proxypool_stress_test")
+set(WPEFRAMEWORK_STRESS_APP "WPEFramework_stress_test")
 
-add_executable(${PROXY_STRESS_TEST_RUNNER}
-   StressTestExecutionStrategies.cpp
-   StressTestManager.cpp
-   StressTestProxyTypes.cpp
-   StressTestTrafficGenerators.cpp
-
+add_executable(${WPEFRAMEWORK_STRESS_APP}
+   Module.cpp
+   StressTestCommon.cpp
+   StressTestTrafficShaper.cpp 
+   StressTestManager.cpp 
+   StressTestProxyCategory.cpp
+   StressTestMain.cpp
 )
 
-target_compile_definitions(${PROXY_STRESS_TEST_RUNNER}
+target_compile_definitions(${WPEFRAMEWORK_STRESS_APP}
    PRIVATE BUILD_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
 )
 
-target_compile_definitions(${PROXY_STRESS_TEST_RUNNER}
+target_compile_definitions(${WPEFRAMEWORK_STRESS_APP}
    PRIVATE BUILD_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
 )
 
-target_link_libraries(${PROXY_STRESS_TEST_RUNNER} 
+target_link_libraries(${WPEFRAMEWORK_STRESS_APP} 
     WPEFrameworkCore
 )
 
 install(
-    TARGETS ${PROXY_STRESS_TEST_RUNNER}
+    TARGETS ${WPEFRAMEWORK_STRESS_APP} 
     DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)

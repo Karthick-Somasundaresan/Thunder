@@ -2,7 +2,7 @@
  * If not stated otherwise in this file or this component's LICENSE file the
  * following copyright and licenses apply:
  *
- * Copyright 2020 Metrological
+ * Copyright 2022 Metrological
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,86 +17,85 @@
  * limitations under the License.
  */
 
-#define MODULE_NAME ProxyPoolStressTest
-#include "StressTestManager.h"
-#include "StressTestExecutionStrategies.h"
+#include "StressTestCommon.h"
 
 namespace WPEFramework {
 namespace StressTest {
 
-void TestManager::NotifyTestComplete() {
-  _cs.Unlock();
-  return;
+TestManager& TestManager::Instance() {
+  static TestManager tm;
+  return tm;
 }
-void TestManager::NotifyTestComplete(std::map<uint64_t, int32_t>& report) /*override*/ {
-  std::cout<<"Test Completed\n";
-  for(const auto & elem : report) {
-    _masterReport.insert(std::pair<uint64_t, int32_t>(elem.first, elem.second));
+
+TestManager::~TestManager(){
+  std::cerr<<"TestManager Destructor\n";
+}
+void TestManager::UnRegisterTest(TestInterface* testInterface) {
+  auto result = std::find(std::begin(_listOfTests), std::end(_listOfTests), testInterface);
+  if(result != std::end(_listOfTests)){
+    _listOfTests.erase(result);
   }
-  std::cout<<"Timer Completed\n";
-  _cs.Unlock();
-  return;
-
+}
+void TestManager::RegisterTest(TestInterface* testInterface) {
+  std::cout<<"Registering test category: "<<testInterface->GetName()<<'\n';
+  testInterface->SetListener(this);
+  _listOfTests.push_back(testInterface);
 }
 
-void TestManager::generateReport() {
-  int32_t peak{1};
-  int32_t total{0};
-  uint32_t noOfRequest = std::count_if(_masterReport.cbegin(), _masterReport.cend(), [](std::pair<uint64_t, int32_t> element){ return element.second > 0? true:false;});
-  uint32_t noOfRelease = std::count_if(_masterReport.cbegin(), _masterReport.cend(), [](std::pair<uint64_t, int32_t> element){ return element.second < 0? true:false;});
-  auto lambda =  [&peak, &total](std::pair<uint64_t, int32_t> element)mutable{
-                        total += element.second;
-      if (total > peak)
-      {
-        peak = total;
-      }};
-  std::for_each(_masterReport.begin(), _masterReport.end(), lambda);
-  std::cout<<"No. of Operation: "<<_masterReport.size()<<"\n";
-  std::cout<<"No. of Request: "<< noOfRequest<<"\n";
-  std::cout<<"No. of Release: "<< noOfRelease<<"\n";
-  std::cout<<"Peak request: "<< peak<<"\n";
-
-
-  return;
-}
-    
-void TestManager::WaitForTestToComplete() {
-  while(_timerCount > 0) {
-  _timerCount--;
-  _cs.Lock();
+void TestManager::PerformTest() {
+  std::cout<<"List of test/groups executions registered: "<<_listOfTests.size()<<'\n';
+  for(auto iter = _listOfTests.begin(); iter != _listOfTests.end() && IsTestCancelled() != true; iter++) {
+      std::cerr<<"Start testing for category: "<<(*iter)->GetName()<<'\n';
+      _executionCount++;
+      (*iter)->ExecuteTest();
+      WaitForCompletion();
   }
-  for(const auto& iter: _taskExecutionList) {
-    iter->Cleanup();
-  }
-  generateReport();
-  return;
-}
-void TestManager::StartTest() {
-  ASSERT(_loadTestObject != nullptr);
-  if(_freq > 0) {
+  std::cout<<"All Test Completed TestManager\n";
 
-    for (const auto iter: _trafficGeneratorFactory.getAllTrafficGenerators()){
-      _taskExecutionList.emplace_back(new LinearTimedTaskExecutor(this, _loadTestObject, iter));
+  std::cerr<<"Waiting 1 sec for cooldown\n";
+  sleep(1);
+}
+
+void TestManager::WaitForCompletion() {
+  while(_executionCount > 0) {
+      if(_cs.Lock(wakeInterval) == Core::ERROR_NONE) {
+        _executionCount--;
+      }
+  }
+}
+
+bool TestManager::IsTestCancelled() const {
+  std::lock_guard<std::mutex> lock(_lock);
+  std::cerr<<"CANCEL TEST STATE: "<<_cancelTest<<'\n';
+  return _cancelTest;
+}
+
+void TestManager::CancelTest() {
+  std::lock_guard<std::mutex> lock(_lock);
+  _cancelTest = true;
+}
+
+void TestManager::StopExecution() {
+
+  std::cerr<<"Stopping Execution\n";
+  CancelTest();
+  std::cerr<<"Calling cancel test on all Registered Test\n";
+  for(auto iter = _listOfTests.begin(); iter != _listOfTests.end(); iter++) {
+
+    if((*iter)->GetExecutionState() == ExecutionState::RUNNING){
+      std::cerr<<"Calling CancelTest on "<<(*iter)->GetName()<<'\n';
+      (*iter)->CancelTest();
     }
   }
-  else {
-    _taskExecutionList.emplace_back(new OnlyLoadThreadTaskExecutor(this, _loadTestObject, _duration));
-    _taskExecutionList.emplace_back(new OnlyUnLoadThreadTaskExecutor(this, _loadTestObject, _duration));
-  }
-  for(const auto& iter: _taskExecutionList) {
-    iter->ExecuteTest();
-    _timerCount++;
-  }
-  WaitForTestToComplete();
-  std::cout<<"All tests completed\n";
+}
+void TestManager::HandleComplete() {
+  std::cerr<<"Received Handle Complete in TestManager\n";
+    _cs.Unlock();
 }
 
-void TestManager::SetTestObject(LoadTestInterface* loadTestObject) {
-  ASSERT(loadTestObject != nullptr);
-  _loadTestObject = loadTestObject;
+void TestManager::HandleCancelRequest() {
+  _monitorCancelRequestThread.Run();
 }
 
 } // namespace StressTest
-
-    
 } // namespace WPEFramework
