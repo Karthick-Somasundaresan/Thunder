@@ -324,6 +324,7 @@ class ConstantTrafficGenerator {
     ConstantTrafficGenerator() = delete;
     ConstantTrafficGenerator(const ConstantTrafficGenerator&) = delete;
     ConstantTrafficGenerator& operator=(const ConstantTrafficGenerator&) = delete;
+    ConstantTrafficGenerator(Direction direction):ConstantTrafficGenerator(direction, ConfigReader::Instance().Duration()){}
     ConstantTrafficGenerator(Direction direction, uint32_t duration):_value((direction==Direction::INCREASE)?1:-1),_duration(duration * 1000) {
 
       std::cerr<<"Duration: "<< duration<<'\n';

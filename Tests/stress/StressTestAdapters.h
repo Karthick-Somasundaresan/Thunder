@@ -109,7 +109,6 @@ class SimpleAdapter: public TestAdapterBaseClass, public HandleNotification {
 };
 
 
-template<typename SHAPER>
 class NonIntervalBasedExecutor {
   private:
     class Action{
@@ -117,24 +116,24 @@ class NonIntervalBasedExecutor {
 
       public:
         Action() = delete;
-        Action(const Action& other): _listener(other._listener), _shaper(other._shaper){
+        Action(const Action& other): _listener(other._listener), _direction(other._direction), _duration(other._duration){
 
         }
         Action& operator=(const Action&) = delete;
-        Action(HandleNotification* listener, SHAPER* shaper): _listener(listener)
-                                                            , _shaper(shaper) {
+        Action(HandleNotification* listener, Direction direction, uint32_t duration): _listener(listener)
+                                                                                    , _direction(direction)
+                                                                                    , _duration(duration){ 
 
         }
         bool operator==(const Action& RHS) const {
-            return (_listener == RHS._listener && _shaper == RHS._shaper);
+            return (_listener == RHS._listener && _direction == RHS._direction && _duration == RHS._duration);
         }
         uint64_t Timed(uint64_t scheduledTime){
-          Direction direction = _shaper->GetValue() == 1?Direction::INCREASE: Direction::DECREASE;
 
-          Core::Time expiryTime = Core::Time::Now().Add(_shaper->GetNextTimerValue());
+          Core::Time expiryTime = Core::Time::Now().Add(_duration* 1000);
 
           while(Core::Time::Now() < expiryTime){
-            _listener->HandleChange(direction, 1);
+            _listener->HandleChange(_direction, 1);
           }
           std::cerr<<"Test Completed\n";
           _listener->HandleComplete();
@@ -144,40 +143,41 @@ class NonIntervalBasedExecutor {
         
       private:
         HandleNotification* _listener;
-        SHAPER* _shaper;
+        Direction _direction;
+        uint32_t _duration;
     };
   public:
-    template<typename... Args>
-    NonIntervalBasedExecutor(HandleNotification* listener, Args&&... args): _listener(listener)
-                                                                  , _shaper(std::forward<Args>(args)...)
-                                                                //   , _action(_listener, _shaper)
-                                                                  , _actionTimer(Core::Thread::DefaultStackSize(), _T(_shaper.GetName().c_str())){
+    NonIntervalBasedExecutor(HandleNotification* listener): _listener(listener)
+                                                                  , _increaseActionTimer(Core::Thread::DefaultStackSize(), _T("Increase"))
+                                                                  , _decreaseActionTimer(Core::Thread::DefaultStackSize(), _T("Decrease")){
 
     }
     void StartExecution() {
     //   Core::Time expiryTime = Core::Time::Now().Add(_shaper.GetNextTimerValue());
     //   _actionTimer.Schedule(Core::Time::Now().Ticks(), _action);
-      _actionTimer.Schedule(Core::Time::Now().Ticks(), Action(_listener, &_shaper));
+      _increaseActionTimer.Schedule(Core::Time::Now().Ticks(), Action(_listener, Direction::INCREASE, ConfigReader::Instance().Duration()));
+      _decreaseActionTimer.Schedule(Core::Time::Now().Ticks(), Action(_listener, Direction::DECREASE, ConfigReader::Instance().Duration()));
 
     }
 
     void CancelExecution () {
         // _actionTimer.Revoke(_action);
         std::cerr<<"Cancelling Execution on NonIntervalBasedExecutor\n";
-        _actionTimer.Revoke(Action(_listener, &_shaper));
+        // _actionTimer.Revoke(Action(_listener, &_shaper));
+        _increaseActionTimer.Revoke(Action(_listener, Direction::INCREASE, ConfigReader::Instance().Duration()));
+        _decreaseActionTimer.Revoke(Action(_listener, Direction::DECREASE, ConfigReader::Instance().Duration()));
         std::cerr<<"After Cancelling Execution on NonIntervalBasedExecutor\n";
         _listener->HandleComplete();
     }
 
     string GetName() const {
-        return "NonIntervalBasedExecutor with " + _shaper.GetName();
+        return "NonIntervalBasedExecutor ";
     }
 
   private:
     HandleNotification* _listener;
-    SHAPER _shaper;
-    // Action _action;
-    Core::TimerType<Action> _actionTimer;
+    Core::TimerType<Action> _increaseActionTimer;
+    Core::TimerType<Action> _decreaseActionTimer;
 
 };
 
