@@ -28,29 +28,31 @@ TestManager& TestManager::Instance() {
 }
 
 TestManager::~TestManager(){
-  std::cerr<<"TestManager Destructor\n";
 }
-void TestManager::UnRegisterTest(TestInterface* testInterface) {
-  auto result = std::find(std::begin(_listOfTests), std::end(_listOfTests), testInterface);
+void TestManager::UnRegisterTest(AbstractTestInterface* AbstractTestInterface) {
+  auto result = std::find(std::begin(_listOfTests), std::end(_listOfTests), AbstractTestInterface);
   if(result != std::end(_listOfTests)){
     _listOfTests.erase(result);
   }
 }
-void TestManager::RegisterTest(TestInterface* testInterface) {
-  std::cout<<"Registering test category: "<<testInterface->GetName()<<'\n';
-  testInterface->SetListener(this);
-  _listOfTests.push_back(testInterface);
+void TestManager::RegisterTest(AbstractTestInterface* AbstractTestInterface) {
+  std::cout<<"Registering test category: "<<AbstractTestInterface->GetName()<<'\n';
+  AbstractTestInterface->SetListener(this);
+  _listOfTests.push_back(AbstractTestInterface);
 }
 
 void TestManager::PerformTest() {
   std::cout<<"List of test/groups executions registered: "<<_listOfTests.size()<<'\n';
   for(auto iter = _listOfTests.begin(); iter != _listOfTests.end() && IsTestCancelled() != true; iter++) {
-      std::cerr<<"Start testing for category: "<<(*iter)->GetName()<<'\n';
+      std::cerr<<"Start testing : "<<(*iter)->GetName()<<'\n';
       _executionCount++;
       (*iter)->ExecuteTest();
+      std::cerr<<"Waiting for completion :"<<(*iter)->GetName()<<'\n';
       WaitForCompletion();
+      std::cerr<<"End testing: "<<(*iter)->GetName()<<'\n';
   }
   std::cout<<"All Test Completed TestManager\n";
+  PrintReport(ReportType::ALL);
 
   std::cerr<<"Waiting 1 sec for cooldown\n";
   sleep(1);
@@ -62,11 +64,32 @@ void TestManager::WaitForCompletion() {
         _executionCount--;
       }
   }
+  if(IsTestCancelled()) {
+    _cancelWait.Unlock();
+  }
+}
+
+void TestManager::StartTest() {
+  if(_performTestThread.State() != Core::Thread::RUNNING){
+    _performTestThread.Run();
+  } else {
+    std::cout<<"Already Test Started\n";
+  }
+}
+
+void TestManager::PrintReport(ReportType type) const {
+  
+  if(type ==  ReportType::TEST_COUNT ) {
+    std::cout<<"No. of tests: "<<_listOfTests.size()<<'\n';
+  } else {
+    for (auto & iter: _listOfTests) {
+      iter->PrintReport(type);
+    }
+  }
 }
 
 bool TestManager::IsTestCancelled() const {
   std::lock_guard<std::mutex> lock(_lock);
-  std::cerr<<"CANCEL TEST STATE: "<<_cancelTest<<'\n';
   return _cancelTest;
 }
 
@@ -77,24 +100,25 @@ void TestManager::CancelTest() {
 
 void TestManager::StopExecution() {
 
+  bool waitForExecutionComplete = false;
   std::cerr<<"Stopping Execution\n";
   CancelTest();
-  std::cerr<<"Calling cancel test on all Registered Test\n";
+  std::cerr<<"Calling cancel test on all Registered Test count:" << _listOfTests.size()<<"\n";
   for(auto iter = _listOfTests.begin(); iter != _listOfTests.end(); iter++) {
 
     if((*iter)->GetExecutionState() == ExecutionState::RUNNING){
       std::cerr<<"Calling CancelTest on "<<(*iter)->GetName()<<'\n';
       (*iter)->CancelTest();
+      waitForExecutionComplete = true;
     }
   }
+  if (waitForExecutionComplete)
+    _cancelWait.Lock();
+  std::cerr<<"All Test Stopped\n";
 }
 void TestManager::HandleComplete() {
   std::cerr<<"Received Handle Complete in TestManager\n";
     _cs.Unlock();
-}
-
-void TestManager::HandleCancelRequest() {
-  _monitorCancelRequestThread.Run();
 }
 
 } // namespace StressTest

@@ -1,41 +1,40 @@
+/*
+ * If not stated otherwise in this file or this component's LICENSE file the
+ * following copyright and licenses apply:
+ *
+ * Copyright 2022 Metrological
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include "StressTestCommon.h"
 #include "StressTestAdapters.h"
 
 namespace WPEFramework{
 namespace StressTest{
-
-uint32_t MonitorCancelRequest::Worker() {
-  TestManager::Instance().StopExecution();
-  Stop();
-  return Core::infinite;
-}
-
-
-void CategoryTest::SetExecutionState(ExecutionState state) {
-    std::lock_guard<std::mutex> lk(_lock);
-    _executionState = state;
-}
-
-void CategoryTest::Register(string categoryName, TestAdapterBaseClass* testClass) {
+void CategoryTest::Register(string categoryName, AbstractTestInterface* testClass) {
     _categoryMap[categoryName].push_back(testClass);
     testClass->SetListener(this);
 }
 
-void CategoryTest::UnRegister(string categoryName, TestAdapterBaseClass* testClass) {
+void CategoryTest::UnRegister(string categoryName, AbstractTestInterface* testClass) {
 
     auto result = std::find(std::begin(_categoryMap[categoryName]), std::end(_categoryMap[categoryName]), testClass);
     if (result != std::end(_categoryMap[categoryName]))
     {
         _categoryMap[categoryName].erase(result);
     }
-    std::cout<<"Unregister in Categorytest complete\n";
 }
-
-ExecutionState CategoryTest::GetExecutionState() const{
-    std::lock_guard<std::mutex> lk(_lock);
-    return _executionState;
-}
-
 void CategoryTest::HandleComplete() {
     _cs.Unlock();
 }
@@ -50,20 +49,18 @@ void CategoryTest::WaitForCompletion() {
 }
 
 CategoryTest::~CategoryTest() {
-  std::cout<<"Category Destructor Begin\n";
   TestManager::Instance().UnRegisterTest(this);
-  std::cout<<"Category Unregister complete\n";
   for(auto category = _categoryMap.begin(); category != _categoryMap.end(); category++ ){
     if((*category).second.size() > 0) {
         (*category).second.clear();
     }
   }
   _categoryMap.clear();
-  std::cout<<"Category Destructor complete\n";
 }
 
 void CategoryTest::ExecuteTest() {
   SetExecutionState(ExecutionState::RUNNING);
+  SetExecutionStatus(ExecutionStatus::EXECUTING);
   for(auto category = _categoryMap.cbegin(); category != _categoryMap.cend(); category++ ){
     for(auto test = category->second.begin(); test != category->second.end() && IsTestCancelled() != true; test++) {
       _executionCount++;
@@ -74,11 +71,11 @@ void CategoryTest::ExecuteTest() {
   }
   std::cerr<<"All Tests in Category Completed\n";
   SetExecutionState(ExecutionState::STOPPED);
+  SetExecutionStatus(ExecutionStatus::SUCCESS);
   _listener->HandleComplete();
 }
 
 void CategoryTest::CancelTest() {
-  std::cerr<<"Received CancelTest Request\n";
   SetCancelTest(true);
   for(auto category = _categoryMap.cbegin(); category != _categoryMap.cend(); category++ ){
     for(auto test = category->second.begin(); test != category->second.end() && (*test)->GetExecutionState() == ExecutionState::RUNNING; test++) {
@@ -103,7 +100,14 @@ void CategoryTest::SetListener(HandleNotification* listener) {
 }
 
 string CategoryTest::GetName() const {
-    return "CategoryTest";
+  string testNames;
+  for(auto category: _categoryMap){
+    testNames += category.first + "\n===============\n" ;
+    for(auto test: category.second){
+      testNames += test->GetName() + "\n";
+    }
+  }
+  return testNames;
 }
 
 

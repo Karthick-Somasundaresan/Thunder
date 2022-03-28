@@ -1,8 +1,0 @@
-{
-    "cmake.configureSettings": {
-        "EXTERN_EVENTS":"",
-        "PORT":"55555",
-        "BINDING":"127.0.0.1",
-        "IDLE_TIME":"180",
-    }
-}

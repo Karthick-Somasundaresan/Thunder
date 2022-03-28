@@ -20,7 +20,6 @@ set(WPEFRAMEWORK_STRESS_APP "WPEFramework_stress_test")
 add_executable(${WPEFRAMEWORK_STRESS_APP}
    Module.cpp
    StressTestCommon.cpp
-   StressTestTrafficShaper.cpp 
    StressTestManager.cpp 
    StressTestProxyCategory.cpp
    StressTestMain.cpp

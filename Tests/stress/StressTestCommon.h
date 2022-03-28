@@ -21,6 +21,7 @@
 #include "Module.h"
 #include <mutex>
 
+
 namespace WPEFramework {
 namespace StressTest {
 
@@ -34,6 +35,7 @@ enum class Direction{
 };
 
 enum class ExecutionState {
+  NOTSTARTED,
   RUNNING,
   STOPPED
 };
@@ -47,6 +49,14 @@ enum class ExecutionStatus {
   CANCELLED
 };
 
+enum class ReportType {
+  TEST_COUNT,
+  TEST_NAMES,
+  TEST_STATE,
+  TEST_STATUS,
+  ALL
+
+};
 struct HandleNotification {
   virtual void HandleChange(Direction direction, uint32_t value) {}
   virtual void HandleComplete() {}
@@ -54,49 +64,131 @@ struct HandleNotification {
 };
 
 
-class TestInterface {
+inline string ExecutionStateToString(ExecutionState state ){
+  string retStr;
+  switch(state){
+    case ExecutionState::NOTSTARTED:
+      retStr = "Not Started";
+      break;
+    case ExecutionState::RUNNING:
+      retStr = "Running";
+      break;
+    case ExecutionState::STOPPED:
+      retStr = "Stopped";
+      break;
+  }
+  return retStr;
+} 
+
+inline string ExecutionStatusToString(ExecutionStatus status) {
+  string retStr;
+  switch(status) {
+    case ExecutionStatus::NOTEXECUTED:
+      retStr = "Not Executed";
+      break;
+    case ExecutionStatus::EXECUTING:
+      retStr = "Executing";
+      break;
+    case ExecutionStatus::SUCCESS:
+      retStr = "Success";
+      break;
+    case ExecutionStatus::FAILURE:
+      retStr = "Failure";
+      break;
+    case ExecutionStatus::SKIPPED:
+      retStr = "Skipped";
+      break;
+    case ExecutionStatus::CANCELLED:
+      retStr = "Cancelled";
+      break;
+  }
+  return retStr;
+}
+
+class AbstractTestInterface {
   public:
-    TestInterface(): _executionStatus(ExecutionStatus::NOTEXECUTED){}
+    AbstractTestInterface() : _executionStatus(ExecutionStatus::NOTEXECUTED)
+                    , _executionState(ExecutionState::NOTSTARTED)
+                    , _lock(){
+
+    }
     virtual void ExecuteTest() = 0;
     virtual void CancelTest() = 0;
     virtual void SetListener(HandleNotification*) = 0;
     virtual string GetName() const = 0;
-    ExecutionStatus GetExecutionStatus() const {
-        return _executionStatus;
+    virtual void PrintReport(ReportType type) {
+      switch(type){
+        case ReportType::TEST_COUNT:
+          std::cout<<"Test count: 1"<<'\n';
+          break;
+        case ReportType::TEST_NAMES:
+          std::cout<<"Test Name: "<<GetName()<<'\n';
+          break;
+        case ReportType::TEST_STATE:
+          std::cout<<"Test Name: "<<GetName()<<"\nState:"<<ExecutionStateToString(GetExecutionState())<<'\n';
+          break;
+        case ReportType::TEST_STATUS:
+          std::cout<<"Test Name: "<<GetName()<<"\nStatus:"<<ExecutionStatusToString(GetExecutionStatus())<<'\n';
+          break;
+        case ReportType::ALL:
+          std::cout<<"Test Name: "<<GetName()<<"\nState:"<<ExecutionStateToString(GetExecutionState())<<"\nStatus:"<<ExecutionStatusToString(GetExecutionStatus())<< '\n';
+          break;
+      }
     }
-    virtual ExecutionState GetExecutionState() const = 0;
-    virtual ~TestInterface () = default;
+    virtual ExecutionStatus GetExecutionStatus() const {
+      return _executionStatus;
+    }
+    virtual ExecutionState GetExecutionState() const {
+      return _executionState;
+    }
+    virtual ~AbstractTestInterface () = default;
   protected:
-    void SetExecutionStatus(ExecutionStatus executionStatus) {
+    virtual void SetExecutionStatus(ExecutionStatus executionStatus) {
+      std::lock_guard<std::mutex> lk(_lock);
       _executionStatus = executionStatus;
     }
+
+    virtual void SetExecutionState(ExecutionState executionState) {
+      std::lock_guard<std::mutex> lk(_lock);
+      _executionState = executionState;
+    }
   private:
-    ExecutionStatus _executionStatus;
+    ExecutionStatus _executionStatus{ExecutionStatus::NOTEXECUTED};
+    ExecutionState _executionState{ExecutionState::STOPPED};
+    mutable std::mutex _lock;
 
 };
 
-struct LoadTestInterface {
+struct StressTestInterface {
   virtual void IncreaseLoad(uint32_t loadFactor) = 0;
   virtual void DecreaseLoad(uint32_t loadFactor) = 0;
   virtual void MaxLoad() = 0;
   virtual void NoLoad() = 0;
   virtual string GetClassName() const = 0;
   virtual void Cleanup() = 0;
-  virtual ~LoadTestInterface() = default;
+  virtual bool Validate() = 0;
+  virtual ~StressTestInterface() = default;
 };
 
 
 
-class MonitorCancelRequest: public WPEFramework::Core::Thread {
-    public:
-    MonitorCancelRequest() = default;
-    ~MonitorCancelRequest() = default;
-    uint32_t Worker();
-};
 class TestManager: public HandleNotification{
   private:
-    TestManager():_listOfTests(), _executionCount(-1), _cs(0,1),_monitorCancelRequestThread(), _cancelTest(false), _lock() {
-        _monitorCancelRequestThread.Suspend();
+    class PerformTestThread: public Core::Thread {
+      public:
+        PerformTestThread(TestManager* parent): Core::Thread(Core::Thread::DefaultStackSize(), _T("PerformTestThread")), _parent(parent) {
+        }
+        uint32_t Worker() {
+          _parent->PerformTest();
+          Stop();
+          return Core::infinite;
+        }
+      private:
+        TestManager* _parent;
+    };
+  private:
+    TestManager():_listOfTests(), _executionCount(0), _cs(0,1), _cancelWait(true), _performTestThread(this), _cancelTest(false), _lock() {
+        _performTestThread.Suspend();
     }
     void WaitForCompletion();
   public:
@@ -104,38 +196,29 @@ class TestManager: public HandleNotification{
     ~TestManager();
     TestManager& operator=(const TestManager&) = delete;
     static TestManager& Instance();
-    void RegisterTest(TestInterface*);
-    void UnRegisterTest(TestInterface*);
+    void RegisterTest(AbstractTestInterface*);
+    void UnRegisterTest(AbstractTestInterface*);
     void PerformTest();
+    void StartTest();
     void HandleComplete() override;
     void StopExecution();
     void HandleCancelRequest();
+    void PrintReport(ReportType)const;
   private:
     bool IsTestCancelled() const;
     void CancelTest();
   private:
-    std::vector<TestInterface*> _listOfTests;
+    std::vector<AbstractTestInterface*> _listOfTests;
     unsigned int _executionCount;
     Core::CountingSemaphore _cs;
-    MonitorCancelRequest _monitorCancelRequestThread;
+    Core::BinairySemaphore _cancelWait;
+    PerformTestThread _performTestThread;
     bool _cancelTest;
     mutable std::mutex _lock;
 
 };
 
-struct TestAdapterBaseClass : public TestInterface {
-  TestAdapterBaseClass() = default;
-  TestAdapterBaseClass& operator=(const TestAdapterBaseClass&) = delete;
-  TestAdapterBaseClass(const TestAdapterBaseClass&) = delete;
-  virtual ~TestAdapterBaseClass() {}
-  virtual void ExecuteTest() = 0;
-  virtual void CancelTest() = 0;
-  virtual ExecutionState GetExecutionState() const = 0;
-  virtual string GetName() const = 0;
-  virtual bool Validate() = 0;
-};
-
-class CategoryTest : public TestInterface, public HandleNotification {
+class CategoryTest : public AbstractTestInterface, public HandleNotification {
 
     protected:
         CategoryTest():_categoryMap(), _listener(nullptr), _cs(0, UINT32_MAX), _cancelTest(false), _executionCount(0), _executionState(ExecutionState::STOPPED), _lock() {
@@ -146,23 +229,21 @@ class CategoryTest : public TestInterface, public HandleNotification {
             static CategoryTest pct;
             return pct;
         }
-        void Register(string, TestAdapterBaseClass*);
-        void UnRegister(string, TestAdapterBaseClass*);
+        void Register(string, AbstractTestInterface*);
+        void UnRegister(string, AbstractTestInterface*);
         void ExecuteTest() override;
         void CancelTest() override;
         string GetName() const override;
         void SetListener(HandleNotification* listner) override;
         void HandleComplete() override;
-        ExecutionState GetExecutionState() const override;
         ~CategoryTest();
     private:
         void SetCancelTest(bool);
         bool IsTestCancelled() const;
         void WaitForCompletion();
-        void SetExecutionState(ExecutionState);
 
     private:
-        std::map<string, std::vector<TestAdapterBaseClass* >> _categoryMap;
+        std::map<string, std::vector<AbstractTestInterface* >> _categoryMap;
         HandleNotification* _listener;
         Core::CountingSemaphore _cs;
         bool _cancelTest;
@@ -214,7 +295,7 @@ class ConfigReader {
       if(_file.Open(true) == true) {
         JSONConfig config;
         Core::OptionalType<Core::JSON::Error> error;
-        std::cerr<<"Config readng from file\n";
+        std::cerr<<"Config readng from file: "<<_file.PathName()<<"\n";
         config.IElement::FromFile(_file, error);
         if(error.IsSet() == false) {
           if(config.Duration.IsSet()) {
@@ -248,102 +329,6 @@ class ConfigReader {
     uint32_t _duration;
     uint32_t _freq;
     uint32_t _proxyCategoryMaxThreshold;
-};
-
-
-
-class TriangleTrafficGenerator{
-  public:
-    // TriangleTrafficGenerator() = delete;
-    TriangleTrafficGenerator(const TriangleTrafficGenerator&) = default;
-    TriangleTrafficGenerator& operator=(const TriangleTrafficGenerator&) = delete;
-    TriangleTrafficGenerator():TriangleTrafficGenerator(ConfigReader::Instance().Duration()
-                                                        , ConfigReader::Instance().Freq()
-                                                        , ConfigReader::Instance().ProxyCategoryMaxThreshold()
-                                                        , 1, "TrianglularWave"){}
-    TriangleTrafficGenerator(uint32_t stepValue):TriangleTrafficGenerator(ConfigReader::Instance().Duration()
-                                                        , ConfigReader::Instance().Freq()
-                                                        , ConfigReader::Instance().ProxyCategoryMaxThreshold()
-                                                        , stepValue, "StepWave"){}
-    TriangleTrafficGenerator(uint32_t duration, uint32_t freq, uint32_t maxObjectCount): 
-        TriangleTrafficGenerator(duration, freq, maxObjectCount, 1, "TriangularWave") {
-    }
-    TriangleTrafficGenerator(uint32_t duration, uint32_t freq, uint32_t maxObjectCount, uint32_t stepValue): 
-        TriangleTrafficGenerator(duration, freq, maxObjectCount, stepValue, "StepWave") {
-    }
-    TriangleTrafficGenerator(uint32_t duration, uint32_t freq, uint32_t maxObjectCount, uint32_t stepValue, string wavename);
-    ~TriangleTrafficGenerator() = default;
-
-
-    uint32_t GetNextTimerValue();
-    uint32_t GetValue();
-    const string GetName() const ;
-    void Reset() { _elapsedDuration = 0;}
-  private:
-    uint32_t _duration;
-    uint32_t _freq;
-    uint32_t _maxThreshold;
-    uint32_t _elapsedDuration;
-    uint32_t _stepValue;
-    string _waveName;
-    std::map<uint64_t, int32_t> _report;
-};
-
-
-class SineTrafficGenerator {
-  public:
-    SineTrafficGenerator(const SineTrafficGenerator&) = default;
-    SineTrafficGenerator& operator=(const SineTrafficGenerator&) = delete;
-    SineTrafficGenerator(): SineTrafficGenerator(ConfigReader::Instance().Duration()
-                                                , ConfigReader::Instance().Freq()
-                                                , ConfigReader::Instance().ProxyCategoryMaxThreshold()){}
-    SineTrafficGenerator(uint32_t duration, uint32_t freq, uint32_t maxObjectCount): _duration(duration)
-                                                                     , _freq(freq)
-								     , _maxThreshold(maxObjectCount)
-								     , _elapsedTime(0)
-								     , _stepValue(1)
-								     , _waveName("SineWave") {
-    }
-    
-    ~SineTrafficGenerator() = default;
-    uint32_t GetNextTimerValue() ;
-    uint32_t GetValue() ;
-    const string GetName() const ;
-    void Reset() { _elapsedTime = 0;}
-  private:
-    uint32_t _duration;
-    uint32_t _freq;
-    uint32_t _maxThreshold;
-    uint32_t _elapsedTime;
-    uint32_t _stepValue;
-    string _waveName;
-};
-
-class ConstantTrafficGenerator {
-  public:
-    ConstantTrafficGenerator() = delete;
-    ConstantTrafficGenerator(const ConstantTrafficGenerator&) = delete;
-    ConstantTrafficGenerator& operator=(const ConstantTrafficGenerator&) = delete;
-    ConstantTrafficGenerator(Direction direction):ConstantTrafficGenerator(direction, ConfigReader::Instance().Duration()){}
-    ConstantTrafficGenerator(Direction direction, uint32_t duration):_value((direction==Direction::INCREASE)?1:-1),_duration(duration * 1000) {
-
-      std::cerr<<"Duration: "<< duration<<'\n';
-    }
-    ~ConstantTrafficGenerator() = default;
-    uint32_t GetNextTimerValue() {
-      return _duration;
-    }
-    int32_t GetValue() {
-      return _value;
-    }
-    const string GetName() const { 
-      string dir = (_value == 1)? " (Increase)": " (Decrease)";
-      return "ConstantTrafficGen" + dir;
-    }
-    void Reset() {}
-  private:
-    int32_t _value;
-    uint32_t _duration;
 };
 
 }

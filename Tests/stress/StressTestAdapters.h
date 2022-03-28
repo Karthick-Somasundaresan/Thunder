@@ -23,179 +23,180 @@ namespace WPEFramework{
 namespace StressTest
 {
 
-
-template<typename TESTCLASS, typename EXECUTOR>
-class AdaptorWithExecutor: public TestAdapterBaseClass, public HandleNotification {
-  public:
-    template<typename... ARGS>
-      AdaptorWithExecutor(TESTCLASS& testClass, ARGS&&... args) : _testClass(testClass)
-                                                                , _executor(this, std::forward<ARGS>(args)...)
-                                                                , _listener(nullptr)
-                                                                , _executionState(ExecutionState::STOPPED)
-                                                                , _executionStatus(ExecutionStatus::NOTEXECUTED)
-                                                                , _lock(){
-
-      }
-      void ExecuteTest() override {
-        SetExecutionState(ExecutionState::RUNNING);
-        SetExecutionStatus(ExecutionStatus::EXECUTING);
-        _executor.StartExecution();
-      }
-      void CancelTest() override {
-        SetExecutionState(ExecutionState::STOPPED);
-        SetExecutionStatus(ExecutionStatus::CANCELLED);
-        _executor.CancelExecution();
-        _testClass.Cleanup();
-      }
-      void HandleChange(Direction direction, uint32_t value) override{
-        if(direction == Direction::INCREASE) {
-          _testClass.IncreaseLoad(value);
-        } else {
-          _testClass.DecreaseLoad(value);
-        }
-      }
-      void HandleComplete() override{
-        _listener->HandleComplete();
-        _testClass.Cleanup();
-        SetExecutionStatus(ExecutionStatus::SUCCESS);
-      }
-      string GetName() const override {
-        return  _testClass.GetClassName() + " executing with: " + _executor.GetName();;
-      }
-      void SetListener(HandleNotification* listener) {
-        _listener = listener;
-      }
-
-      ExecutionState GetExecutionState() const override {
-          std::lock_guard<std::mutex> lk(_lock);
-          return _executionState;
-      }
-
-      void SetExecutionState(ExecutionState state) {
-          std::lock_guard<std::mutex> lk(_lock);
-          _executionState = state;
-      }
-
-      ExecutionStatus GetExecutionStatus() const{
-          return _executionStatus;
-      }
-
-    private:
-      TESTCLASS& _testClass;
-      EXECUTOR _executor;
-      HandleNotification* _listener;
-      ExecutionState _executionState;
-      ExecutionStatus _executionStatus;
-      mutable std::mutex _lock;
-};
-
-//This class will be inherited by Test cases which will directly register with TestManager.
-template <typename TESTCLASS>
-class SimpleAdapter: public TestAdapterBaseClass, public HandleNotification {
-  public:
-    SimpleAdapter(TESTCLASS& testClassRef): _testClassRef(testClassRef), _listener(nullptr) {
-
-    }
-    virtual void ExecuteTest() = 0;
-    virtual void CancelTest() = 0 ;
-    virtual void HandleChange(Direction direction, uint32_t value ) = 0;
-    virtual void HandleComplete() = 0;
-    virtual void SetNotification(HandleNotification* listner) = 0;
-    virtual ExecutionState GetExecutionState() = 0;
-    virtual string GetName() const = 0;
-  private:
-    TESTCLASS& _testClassRef;
-    HandleNotification* _listener;
+struct ExecutorInterface {
+  virtual void StartExecution() = 0 ;
+  virtual void CancelExecution() = 0 ;
+  virtual void AddListener(HandleNotification*) = 0;
+  virtual string GetName() const = 0;
 };
 
 
-class NonIntervalBasedExecutor {
-  private:
-    class Action{
-      private:
+struct LoadGeneratorInterface {
+  virtual uint64_t GetNextTimerValue(uint64_t elapsedTime) = 0;
+  virtual uint32_t GetLoadValue(uint64_t elapsedTime) = 0;
+  virtual string GetName() const = 0 ;
+  virtual ~LoadGeneratorInterface() = default;
+};
 
+class LoadGeneratorRegistry{
+  private:
+    class AbstractLoadGenerator : public LoadGeneratorInterface {
       public:
-        Action() = delete;
-        Action(const Action& other): _listener(other._listener), _direction(other._direction), _duration(other._duration){
+        AbstractLoadGenerator(uint32_t duration, uint32_t freq, uint32_t threshold, uint32_t stepValue, string waveName): _duration(duration)
+                                                                                                                        , _freq(freq)
+                                                                                                                        , _maxThreshold(threshold)
+                                                                                                                        , _stepValue(stepValue)
+                                                                                                                        , _waveName(waveName) {
 
         }
-        Action& operator=(const Action&) = delete;
-        Action(HandleNotification* listener, Direction direction, uint32_t duration): _listener(listener)
-                                                                                    , _direction(direction)
-                                                                                    , _duration(duration){ 
-
+        string GetName() const override{
+          return _waveName;
         }
-        bool operator==(const Action& RHS) const {
-            return (_listener == RHS._listener && _direction == RHS._direction && _duration == RHS._duration);
+        uint64_t GetNextTimerValue(uint64_t elapsedDuration ) override {
+          uint64_t val = ((elapsedDuration > (_duration * 1000))? 0 : _stepValue) * 1000;
+          return val;
         }
-        uint64_t Timed(uint64_t scheduledTime){
-
-          Core::Time expiryTime = Core::Time::Now().Add(_duration* 1000);
-
-          while(Core::Time::Now() < expiryTime){
-            _listener->HandleChange(_direction, 1);
-          }
-          std::cerr<<"Test Completed\n";
-          _listener->HandleComplete();
-          return 0;
-
-        }
-        
-      private:
-        HandleNotification* _listener;
-        Direction _direction;
+      protected:
         uint32_t _duration;
+        uint32_t _freq;
+        uint32_t _maxThreshold;
+        // uint32_t _elapsedDuration;
+        uint32_t _stepValue;
+        string _waveName;
     };
+
+    class TriangleLoadGenerator : public AbstractLoadGenerator {
+      public:
+        TriangleLoadGenerator(): AbstractLoadGenerator(ConfigReader::Instance().Duration()
+                                                        , ConfigReader::Instance().Freq()
+                                                        , ConfigReader::Instance().ProxyCategoryMaxThreshold()
+                                                        , 1, "TrianglularWave"){}
+        TriangleLoadGenerator(uint32_t stepValue): AbstractLoadGenerator(ConfigReader::Instance().Duration()
+                                                        , ConfigReader::Instance().Freq()
+                                                        , ConfigReader::Instance().ProxyCategoryMaxThreshold()
+                                                        , stepValue, "StepWave"){}
+        uint32_t GetLoadValue(uint64_t elapsedDuration) override {
+          uint32_t period = _duration / (_freq * 2);
+          uint32_t value = (_maxThreshold/period) * (period - abs( (int32_t)((elapsedDuration % (2 * period)) - period)));
+          return value;
+        }
+        ~TriangleLoadGenerator() = default;
+    };
+
+    class SineLoadGenerator : public AbstractLoadGenerator{
+      public:
+        SineLoadGenerator():AbstractLoadGenerator(ConfigReader::Instance().Duration()
+                                                        , ConfigReader::Instance().Freq()
+                                                        , ConfigReader::Instance().ProxyCategoryMaxThreshold()
+                                                        , 1, "SineWave"){}
+        ~SineLoadGenerator() = default;
+
+        uint32_t GetLoadValue(uint64_t elapsedDuration) override {
+           return ((_maxThreshold/2) * sin(elapsedDuration * _freq)) + (_maxThreshold/2);
+        }
+    };
+
   public:
-    NonIntervalBasedExecutor(HandleNotification* listener): _listener(listener)
-                                                                  , _increaseActionTimer(Core::Thread::DefaultStackSize(), _T("Increase"))
-                                                                  , _decreaseActionTimer(Core::Thread::DefaultStackSize(), _T("Decrease")){
-
+    static std::unique_ptr<LoadGeneratorInterface> GetLoadGenerator(uint32_t index) {
+      std::unique_ptr<LoadGeneratorInterface> loadGeneratorInterface = nullptr;
+      switch(index % 3) {
+        case 0:
+          loadGeneratorInterface = std::unique_ptr<TriangleLoadGenerator>(new TriangleLoadGenerator());
+          break;
+        case 1:
+          loadGeneratorInterface = std::unique_ptr<TriangleLoadGenerator>(new TriangleLoadGenerator(5));
+          break;
+        case 2:
+          loadGeneratorInterface = std::unique_ptr<SineLoadGenerator>(new SineLoadGenerator());
+          break;
+      }
+      return loadGeneratorInterface;
     }
-    void StartExecution() {
-    //   Core::Time expiryTime = Core::Time::Now().Add(_shaper.GetNextTimerValue());
-    //   _actionTimer.Schedule(Core::Time::Now().Ticks(), _action);
-      _increaseActionTimer.Schedule(Core::Time::Now().Ticks(), Action(_listener, Direction::INCREASE, ConfigReader::Instance().Duration()));
-      _decreaseActionTimer.Schedule(Core::Time::Now().Ticks(), Action(_listener, Direction::DECREASE, ConfigReader::Instance().Duration()));
 
+};
+
+
+class TestAdapter: public AbstractTestInterface, public HandleNotification {
+  public:
+    TestAdapter(StressTestInterface& testClass, ExecutorInterface* executor) : _testClass(testClass)
+                                                      , _executor(executor)
+                                                      , _listener(nullptr){
+
+      _executor->AddListener(this);
+    }
+    void ExecuteTest() {
+      SetExecutionState(ExecutionState::RUNNING);
+      SetExecutionStatus(ExecutionStatus::EXECUTING);
+      _executor->StartExecution();
     }
 
-    void CancelExecution () {
-        // _actionTimer.Revoke(_action);
-        std::cerr<<"Cancelling Execution on NonIntervalBasedExecutor\n";
-        // _actionTimer.Revoke(Action(_listener, &_shaper));
-        _increaseActionTimer.Revoke(Action(_listener, Direction::INCREASE, ConfigReader::Instance().Duration()));
-        _decreaseActionTimer.Revoke(Action(_listener, Direction::DECREASE, ConfigReader::Instance().Duration()));
-        std::cerr<<"After Cancelling Execution on NonIntervalBasedExecutor\n";
-        _listener->HandleComplete();
+
+    void CancelTest() {
+      SetExecutionState(ExecutionState::STOPPED);
+      SetExecutionStatus(ExecutionStatus::CANCELLED);
+      _executor->CancelExecution();
+      _testClass.Cleanup(); 
     }
+    void HandleChange(Direction direction, uint32_t value) override{
+      if(direction == Direction::INCREASE) {
+        _testClass.IncreaseLoad(value);
+      } else {
+        _testClass.DecreaseLoad(value);
+      }
+    }
+    void HandleComplete() override{
+      _listener->HandleComplete();
+      _testClass.Cleanup();
+      SetExecutionState(ExecutionState::STOPPED);
+      SetExecutionStatus(ExecutionStatus::SUCCESS);
+    }
+    virtual void SetListener(HandleNotification* listner) {
+      _listener = listner;
+    }
+    
 
     string GetName() const {
-        return "NonIntervalBasedExecutor ";
+      return _executor->GetName() + " on " + _testClass.GetClassName();
     }
 
+    
   private:
+    StressTestInterface& _testClass;
+    ExecutorInterface* _executor;
     HandleNotification* _listener;
-    Core::TimerType<Action> _increaseActionTimer;
-    Core::TimerType<Action> _decreaseActionTimer;
-
 };
 
-template<typename SHAPER>
-class IntervalBasedExecutor {
+
+template<typename TESTCLASS>
+class LoadTestExecutor : public ExecutorInterface, public HandleNotification {
   private:
-    class TimerHandler {
+    class Action {
       public:
-        TimerHandler() = delete;
-        TimerHandler(HandleNotification* listener, SHAPER* trafficShaper): _listener(listener), _trafficShaper(trafficShaper), _lastValue(0) {
+        Action(HandleNotification* listener, uint32_t id, uint64_t startTime) : _listener(listener)
+                                                          , _id(id)
+                                                          , _shaper(LoadGeneratorRegistry::GetLoadGenerator(id))
+                                                          , _startTime(startTime)
+                                                          , _lastValue(0){
         }
-        bool operator==(const TimerHandler& RHS) const {
-            return (_listener == RHS._listener && _trafficShaper == RHS._trafficShaper);
+        ~Action() = default;
+        Action(Action&& other) {
+          _listener = other._listener;
+          _id = other._id;
+          _shaper = std::move(other._shaper);
+          _lastValue = other._lastValue;
+          _startTime = other._startTime;
         }
+        
         uint64_t Timed(uint64_t scheduledTime) {
+          uint64_t elapsedDuration = 0;
+          if (scheduledTime < _startTime) {
+            elapsedDuration = _startTime - scheduledTime + 1;
+          } else{
+            elapsedDuration = scheduledTime - _startTime;
+          }
           Core::Time nextTick = Core::Time::Now();
-          uint32_t nextSchedule = _trafficShaper->GetNextTimerValue();
-          uint32_t currentValue = _trafficShaper->GetValue();
+          uint32_t nextSchedule = _shaper->GetNextTimerValue(elapsedDuration/1000);
+          uint32_t currentValue = _shaper->GetLoadValue(elapsedDuration/1000);
           int32_t delta = currentValue - _lastValue;
           uint64_t retVal = 0;
 
@@ -209,62 +210,201 @@ class IntervalBasedExecutor {
             retVal = nextTick.Ticks();
             _lastValue = currentValue;
           } else {
-            _trafficShaper->Reset();
             _lastValue = 0;
             _listener->HandleComplete();
           }
           return retVal;
         }
-      private:
-        HandleNotification* _listener;
-        SHAPER* _trafficShaper;
-        uint32_t _lastValue;
+        bool operator==(const Action& other) {
+          return (_listener == other._listener && _shaper == other._shaper && _id == other._id);
+        }
+        private:
+          HandleNotification* _listener;
+          uint32_t _id;
+          std::unique_ptr<LoadGeneratorInterface> _shaper;
+          uint64_t _startTime;
+          uint32_t _lastValue;
     };
   public:
-    IntervalBasedExecutor() = delete;
-    template <typename... Args>
-    IntervalBasedExecutor(HandleNotification* listener, Args&&... args ): _listener(listener)
-                                                                , _trafficShaper(std::forward<Args>(args)...)
-                                                                // , _timerHandler(_listener, _trafficShaper)
-                                                                , _timer(Core::Thread::DefaultStackSize(), _T(_trafficShaper.GetName().c_str())){
-
+    template<typename... Args>
+    LoadTestExecutor(uint32_t noOfThreads, string category, Args&&... args): _noOfThreads(noOfThreads)
+                                                          , _executionCount(0)
+                                                          , _cs()
+                                                          , _listener(nullptr)
+                                                          , _testClass(std::forward<Args>(args)...)
+                                                          , _adapter(_testClass, this)
+                                                          , _category(category)
+                                                          // , _listOfShapers{new TriangleTrafficGenerator(), new TriangleTrafficGenerator(5), new SineTrafficGenerator()}
+                                                          , _listOfTimers(){
+      ASSERT(_noOfThreads > 0);
+      if(category == "Individual") {
+        TestManager::Instance().RegisterTest(&_adapter);
+      } else {
+        CategoryTest::Instance().Register(category, &_adapter);
+      }
+      for(uint32_t index = 0; index < _noOfThreads; index++) {
+            _listOfTimers.emplace_back(new Core::TimerType<Action>(Core::Thread::DefaultStackSize(), _T(_testClass.GetClassName().c_str())));
+        }
     }
-    IntervalBasedExecutor(const IntervalBasedExecutor&) = delete;
-    IntervalBasedExecutor& operator=(const IntervalBasedExecutor&) = delete;
-    void StartExecution() {
-      _timer.Schedule(Core::Time::Now().Ticks(), TimerHandler(_listener, &_trafficShaper));
+    void StartExecution() override {
+      for(uint32_t index = 0; index < _listOfTimers.size(); index++){
+        uint64_t startTime = Core::Time::Now().Ticks();
+        _executionCount++;
+        _listOfTimers[index]->Schedule(startTime, Action( this, index, startTime));
+      }
     }
-
-    void CancelExecution () {
-        // _timer.Revoke(_timerHandler);
-        std::cerr<<"Cancelling Execution on IntervalBasedExecutor\n";
-        _timer.Revoke(TimerHandler(_listener, &_trafficShaper));
-        std::cerr<<"After Cancelling Execution on IntervalBasedExecutor\n";
+    void CancelExecution() override {
+      for(unsigned int index = 0; index < _listOfTimers.size(); index++){
+        _listOfTimers[index]->Flush();
+      }
+      _listener->HandleComplete();
+    }
+    void AddListener(HandleNotification* listener) override{
+      _listener = listener;
+    }
+    string GetName() const override{
+      return "Load Test ";
+    }
+    void HandleChange(Direction direction, uint32_t value) override {
+      _listener->HandleChange(direction, value);
+    }
+    void HandleComplete() {
+      _cs.Lock();
+      _executionCount--;
+      _cs.Unlock();
+      if(_executionCount == 0) {
         _listener->HandleComplete();
+      }
     }
-
-    string GetName() const {
-        return "IntervalBasedExecutor and " + _trafficShaper.GetName();
+    ~LoadTestExecutor() {
+      _listOfTimers.clear();
+      if(_category == "Individual") {
+        TestManager::Instance().UnRegisterTest(&_adapter);
+      } else {
+        CategoryTest::Instance().UnRegister(_category, &_adapter);
+      }
     }
   private:
+    uint32_t _noOfThreads;
+    uint32_t _executionCount;
+    Core::CriticalSection _cs;
     HandleNotification* _listener;
-    SHAPER _trafficShaper;
-    // TimerHandler _timerHandler;
-    Core::TimerType<TimerHandler> _timer;
+    TESTCLASS _testClass;
+    TestAdapter _adapter;
+    string _category;
+    std::vector<Core::TimerType<Action>*> _listOfTimers;
+
 };
 
-// template<typename EXECUTOR>
-// class TestBaseWithExecutor: public AdaptorWithExecutor<TestBaseWithExecutor<EXECUTOR>, EXECUTOR>, public LoadTestInterface {
-//   public:
-//     virtual void ExecuteTest() = 0;
-//     virtual void CancelTest() = 0;
-//     virtual void HandleChange(Direction, uint32_t) = 0;
-//     virtual void HandleComplete() = 0;
-//     virtual string GetName() = 0;
-//     virtual ExecutionState GetState() = 0;
-//     virtual 
+template <typename TESTCLASS>
+class StressTestExecutor : public ExecutorInterface , public HandleNotification{
+  private:
+    class ActionThread : public Core::Thread {
+      public:
+        ActionThread() = delete;
+        ActionThread(const ActionThread&) = delete;
+        ActionThread& operator=(const ActionThread&) = delete;
+        ActionThread(HandleNotification* listener, Direction direction, uint32_t duration): Core::Thread(Core::Thread::DefaultStackSize(), nullptr)
+                                                                                          , _listener(listener)
+                                                                                          , _direction(direction)
+                                                                                          , _duration(duration){
+          // Suspend();
+        }
+        ~ActionThread() {
+          Stop();
+          Wait(Thread::BLOCKED | Thread::STOPPED | Thread::INITIALIZED, Core::infinite);
+        }
+        uint32_t Worker() override {
+          const Core::Time expiryTime = Core::Time::Now().Add(_duration* 1000);
 
-// };
+          while(IsRunning() && Core::Time::Now() < expiryTime){
+            _listener->HandleChange(_direction, 1);
+          }
+          _listener->HandleComplete();
+          Block();
+          return Core::infinite;
+        }
+      private:
+        HandleNotification* _listener;
+        Direction _direction;
+        uint32_t _duration;
+    };
+  public:
+    template<typename... Args>
+    StressTestExecutor(uint32_t noOfThreads, string category, Args&&... args) : _noOfThreads((noOfThreads % 2) ? noOfThreads + 1 : noOfThreads)
+                                                                              , _executionCount(0)
+                                                                              , _cs()
+                                                                              , _category(category)
+                                                                              , _listener(nullptr)
+                                                                              , _testClass(std::forward<Args>(args)...)
+                                                                              , _adapter(_testClass, this)
+                                                                              , _listOfThreads() {
+
+      ASSERT(_noOfThreads > 0);
+      if(category == "Individual") {
+        TestManager::Instance().RegisterTest(&_adapter);
+      } else {
+        CategoryTest::Instance().Register(category, &_adapter);
+      }
+      for(uint32_t index = 0; index < _noOfThreads; index++) {
+        _listOfThreads.emplace_back(new ActionThread(this, (index % 2 ? Direction::INCREASE : Direction::DECREASE), ConfigReader::Instance().Duration()));
+      }
+    }
+    void HandleChange(Direction direction, uint32_t value) {
+      _listener->HandleChange(direction, value);
+    }
+    void HandleComplete() {
+      _cs.Lock();
+      _executionCount--;
+      _cs.Unlock();
+      if (_executionCount == 0) {
+        _listener->HandleComplete();
+      }
+    }
+
+    void StartExecution() override {
+      for(uint32_t index = 0; index < _listOfThreads.size(); index++){
+        _cs.Lock();
+        _executionCount++;
+        _cs.Unlock();
+        _listOfThreads[index]->Run();
+      }
+    }
+    void CancelExecution() override {
+      for(unsigned int index = 0; index < _listOfThreads.size(); index++){
+        _listOfThreads[index]->Stop();
+      }
+      _listener->HandleComplete();
+    }
+    void AddListener(HandleNotification* listener) override{
+      _listener = listener;
+    }
+
+    string GetName() const override{
+      return "Stress Test ";
+    }
+    ~StressTestExecutor() {
+      // _listOfTimers.clear();
+      for(auto& thread : _listOfThreads) {
+        delete thread;
+      }
+      _listOfThreads.clear();
+      if(_category == "Individual") {
+        TestManager::Instance().UnRegisterTest(&_adapter);
+      } else {
+        CategoryTest::Instance().UnRegister(_category, &_adapter);
+      }
+    }
+  private:
+    uint32_t _noOfThreads;
+    uint32_t _executionCount;
+    Core::CriticalSection _cs;
+    string _category;
+    HandleNotification* _listener;
+    TESTCLASS _testClass;
+    TestAdapter _adapter;
+    std::vector<ActionThread*> _listOfThreads;
+};
 
 } // namespace StressTest
 } // namespace WPEFramework
