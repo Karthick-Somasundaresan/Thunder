@@ -43,6 +43,11 @@ void TestManager::RegisterTest(AbstractTestInterface* AbstractTestInterface) {
 
 void TestManager::PerformTest() {
   std::cout<<"List of test/groups executions registered: "<<_listOfTests.size()<<'\n';
+  for(auto iter: _listOfTests) {
+    iter->Reset();
+  }
+  _timeKeeper.Reset();
+  _timeKeeper.Start();
   for(auto iter = _listOfTests.begin(); iter != _listOfTests.end() && IsTestCancelled() != true; iter++) {
       std::cerr<<"Start testing : "<<(*iter)->GetName()<<'\n';
       _executionCount++;
@@ -51,11 +56,13 @@ void TestManager::PerformTest() {
       WaitForCompletion();
       std::cerr<<"End testing: "<<(*iter)->GetName()<<'\n';
   }
+  _timeKeeper.Stop();
   std::cout<<"All Test Completed TestManager\n";
   PrintReport(ReportType::ALL);
 
-  std::cerr<<"Waiting 1 sec for cooldown\n";
-  sleep(1);
+  //std::cerr<<"Waiting 1 sec for cooldown\n";
+  //sleep(1);
+  _performTestThread.Block();
 }
 
 void TestManager::WaitForCompletion() {
@@ -70,10 +77,22 @@ void TestManager::WaitForCompletion() {
 }
 
 void TestManager::StartTest() {
+  std::cout<<"Enter Start Test\n";
   if(_performTestThread.State() != Core::Thread::RUNNING){
+    std::cout<<"Running perform Test thread again\n";
     _performTestThread.Run();
+    std::cout<<"Running perform Test thread completed\n";
   } else {
     std::cout<<"Already Test Started\n";
+    std::cout<<"Current thread State: "<<_performTestThread.State()<<"\n";
+    //_performTestThread.Block();
+    _performTestThread.Wait(Core::Thread::SUSPENDED| Core::Thread::BLOCKED|Core::Thread::STOPPED, Core::infinite);
+    std::cout<<"After Wait, Current thread State: "<<_performTestThread.State()<<"\n";
+    std::cout<<"Old Run Stopped. Starting a new run\n";
+
+    _performTestThread.Run();
+    std::cout<<"After new Run\n";
+    std::cout<<"After new Run, Current thread State: "<<_performTestThread.State()<<"\n";
   }
 }
 
@@ -86,6 +105,7 @@ void TestManager::PrintReport(ReportType type) const {
       iter->PrintReport(type);
     }
   }
+  std::cout<<"\nTotal ElapsedTime: "<<_timeKeeper.GetElapsedTimeStr()<<"\n\n";
 }
 
 bool TestManager::IsTestCancelled() const {

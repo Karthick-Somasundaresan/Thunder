@@ -17,6 +17,29 @@
 
 set(TARGET WPEFramework_StressTest)
 
-add_subdirectory(lib)
+add_executable(${TARGET}
+   Module.cpp
+   StressTestProxyCategory.cpp
+   StressTestThreadPool.cpp 
+   StressTestMain.cpp
+)
 
-add_subdirectory(tests)
+target_compile_definitions(${TARGET}
+   PRIVATE BUILD_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+)
+
+target_compile_definitions(${TARGET}
+   PRIVATE BUILD_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+)
+
+target_include_directories(${TARGET} PRIVATE ../include)
+
+target_link_libraries(${TARGET} 
+    WPEFrameworkCore
+    StressTestFramework
+)
+
+install(
+    TARGETS ${TARGET} 
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+

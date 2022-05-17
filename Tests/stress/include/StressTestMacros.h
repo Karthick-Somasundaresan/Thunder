@@ -18,7 +18,7 @@
  */
 
 #pragma once
-const char* group = "Individual";
+extern const char* group;
 #define BEGIN_GROUP(GroupName) \
 namespace { \
   const char* group = GroupName;
@@ -26,10 +26,10 @@ namespace { \
 #define VARIABLE_NAME_IMPL(x, y) x##y
 #define VARIABLE_NAME(ClassName, Number) VARIABLE_NAME_IMPL(ClassName, Number)
 #define LOAD_TEST(ClassName,...)\
-LoadTestExecutor<ClassName> VARIABLE_NAME(ClassName, __COUNTER__) (3,group, ##__VA_ARGS__)
+LoadTestExecutor<ClassName> VARIABLE_NAME(ClassName, __COUNTER__) (3,false,group, ##__VA_ARGS__)
 #define STRESS_TEST(ClassName,...)\
-StressTestExecutor<ClassName> VARIABLE_NAME(ClassName, __COUNTER__) (2,group, ##__VA_ARGS__)
-#define LOAD_TEST_WITH_CUSTOM_THREADS(ClassName,ThreadCount,...)\
-LoadTestExecutor<ClassName> VARIABLE_NAME(ClassName, __COUNTER__) (ThreadCount,group, ##__VA_ARGS__)
-#define STRESS_TEST_WITH_CUSTOM_THREADS(ClassName,ThreadCount,...)\
-StressTestExecutor<ClassName> VARIABLE_NAME(ClassName, __COUNTER__) (ThreadCount,group, ##__VA_ARGS__)
+StressTestExecutor<ClassName> VARIABLE_NAME(ClassName, __COUNTER__) (2,false,group, ##__VA_ARGS__)
+#define LOAD_TEST_WITH_CUSTOM_THREADS(ThreadCount,ClassName,...)\
+LoadTestExecutor<ClassName> VARIABLE_NAME(ClassName, __COUNTER__) (ThreadCount,true,group, ##__VA_ARGS__)
+#define STRESS_TEST_WITH_CUSTOM_THREADS(ThreadCount,ClassName,...)\
+StressTestExecutor<ClassName> VARIABLE_NAME(ClassName, __COUNTER__) (ThreadCount,true,group, ##__VA_ARGS__)

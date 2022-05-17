@@ -249,13 +249,15 @@ class ProxyMapStressTest: public ProxyClassStressTest {
 };
 
 // BEGIN_GROUP("CAT1")
+#if 1
 LOAD_TEST(ProxyPoolStressTest);
-LOAD_TEST_WITH_CUSTOM_THREADS(ProxyPoolStressTest, 4);
+LOAD_TEST_WITH_CUSTOM_THREADS(4, ProxyPoolStressTest);
 LOAD_TEST(ProxyMapStressTest);
 LOAD_TEST(ProxyListStressTest);
 STRESS_TEST(ProxyPoolStressTest);
 STRESS_TEST(ProxyMapStressTest);
 STRESS_TEST(ProxyListStressTest);
+#endif
 // END_GROUP
 } // namespace StressTest
 } // namespace WPEFramework

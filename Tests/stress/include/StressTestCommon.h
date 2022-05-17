@@ -19,7 +19,9 @@
 
 #pragma once
 #include "Module.h"
+#include <ostream>
 #include <mutex>
+#include <time.h>
 
 
 namespace WPEFramework {
@@ -61,6 +63,59 @@ struct HandleNotification {
   virtual void HandleChange(Direction direction, uint32_t value) {}
   virtual void HandleComplete() {}
   virtual ~HandleNotification() = default;
+};
+
+
+class TimeKeeper{
+  public:
+    TimeKeeper(): _startTime(0), _endTime(0), _completed(false){}
+
+    void Reset() {
+      _startTime = _endTime = 0;
+      _completed = false;
+    }
+
+    void Start(){
+      time(&_startTime);
+    }
+
+    void Stop(){
+      _completed = true;
+      time(&_endTime);
+
+    }
+
+    double GetElapsedTime() {
+      double elapsedTime = 0.0;
+      if(_completed) {
+        elapsedTime = difftime(_endTime, _startTime);
+      } else if(_startTime > 0) {
+        time_t now;
+	time(&now);
+	elapsedTime = difftime(now, _startTime);
+      } else {
+        elapsedTime = -1.0;
+      }
+
+      return elapsedTime;
+    }
+    string GetElapsedTimeStr() {
+      string elapsedTimeStr;
+      int elapsedTime = GetElapsedTime();
+      if(elapsedTime != -1) {
+        char buffer[24] = {0};
+        snprintf(buffer, sizeof(buffer), "%02d: %02d : %02d" , (int)(elapsedTime/3600), (int)((elapsedTime%3600)/60), (int)(((elapsedTime%3600)%60)));
+        elapsedTimeStr.assign(buffer);
+      } else {
+        elapsedTimeStr.assign("00:00:00");
+      }
+      return elapsedTimeStr;
+    }
+  private:
+    time_t _startTime;
+    time_t _endTime;
+    bool _completed;
+
 };
 
 
@@ -109,6 +164,7 @@ class AbstractTestInterface {
   public:
     AbstractTestInterface() : _executionStatus(ExecutionStatus::NOTEXECUTED)
                     , _executionState(ExecutionState::NOTSTARTED)
+		    , _timeKeeper()
                     , _lock(){
 
     }
@@ -131,7 +187,9 @@ class AbstractTestInterface {
           std::cout<<"Test Name: "<<GetName()<<"\nStatus:"<<ExecutionStatusToString(GetExecutionStatus())<<'\n';
           break;
         case ReportType::ALL:
-          std::cout<<"Test Name: "<<GetName()<<"\nState:"<<ExecutionStateToString(GetExecutionState())<<"\nStatus:"<<ExecutionStatusToString(GetExecutionStatus())<< '\n';
+          std::cout<<" -----------------------------------------------------------------------------------\n";
+          std::cout<<"\tTest Name:\t"<<GetName()<<"\n\tState:\t\t"<<ExecutionStateToString(GetExecutionState())<<"\n\tStatus:\t\t"<<ExecutionStatusToString(GetExecutionStatus())<<"\n\tElapsedTime:\t"<< _timeKeeper.GetElapsedTimeStr() << "\n";
+          std::cout<<" -----------------------------------------------------------------------------------\n";
           break;
       }
     }
@@ -140,6 +198,11 @@ class AbstractTestInterface {
     }
     virtual ExecutionState GetExecutionState() const {
       return _executionState;
+    }
+    void Reset() {
+      _executionStatus = ExecutionStatus::NOTEXECUTED;
+      _executionState = ExecutionState::NOTSTARTED;
+      _timeKeeper.Reset();
     }
     virtual ~AbstractTestInterface () = default;
   protected:
@@ -151,10 +214,17 @@ class AbstractTestInterface {
     virtual void SetExecutionState(ExecutionState executionState) {
       std::lock_guard<std::mutex> lk(_lock);
       _executionState = executionState;
+      if(executionState == ExecutionState::RUNNING) {
+        _timeKeeper.Start();
+      }
+      if (executionState == ExecutionState::STOPPED) {
+        _timeKeeper.Stop();
+      }
     }
   private:
     ExecutionStatus _executionStatus{ExecutionStatus::NOTEXECUTED};
     ExecutionState _executionState{ExecutionState::STOPPED};
+    TimeKeeper _timeKeeper;
     mutable std::mutex _lock;
 
 };
@@ -180,15 +250,22 @@ class TestManager: public HandleNotification{
         }
         uint32_t Worker() {
           _parent->PerformTest();
-          Stop();
+          Block();
           return Core::infinite;
         }
       private:
         TestManager* _parent;
     };
   private:
-    TestManager():_listOfTests(), _executionCount(0), _cs(0,1), _cancelWait(true), _performTestThread(this), _cancelTest(false), _lock() {
-        _performTestThread.Suspend();
+    TestManager(): _listOfTests()
+                 , _executionCount(0)
+		 , _cs(0,1)
+		 , _cancelWait(true)
+		 , _performTestThread(this)
+		 , _cancelTest(false)
+		 , _timeKeeper()
+		 , _lock() {
+        _performTestThread.Block();
     }
     void WaitForCompletion();
   public:
@@ -214,6 +291,7 @@ class TestManager: public HandleNotification{
     Core::BinairySemaphore _cancelWait;
     PerformTestThread _performTestThread;
     bool _cancelTest;
+    mutable TimeKeeper _timeKeeper;
     mutable std::mutex _lock;
 
 };
@@ -263,6 +341,7 @@ class ConfigReader {
           Add(_T("duration"), &Duration);
           Add(_T("freq"), &Freq);
           Add(_T("ProxyCategory_MaxThreshold"), &ProxyCategoryMaxThreshold);
+          Add(_T("ThreadPool_MaxJobThreshold"), &ThreadPoolMaxJobThreshold);
         }
         ~JSONConfig() override = default;
 
@@ -270,16 +349,18 @@ class ConfigReader {
         Core::JSON::DecUInt32 Duration;
         Core::JSON::DecUInt32 Freq;
         Core::JSON::DecUInt32 ProxyCategoryMaxThreshold;
+        Core::JSON::DecUInt32 ThreadPoolMaxJobThreshold;
     };
 
   private:
-    ConfigReader():_file(), _duration(60), _freq(8), _proxyCategoryMaxThreshold(1024) {
+    ConfigReader():_file(), _duration(60), _freq(8), _proxyCategoryMaxThreshold(1024), _threadPoolMaxJobThreshold(1024) {
       char* path = getenv("STRESS_TEST_CONFIG_FILE");
       if (path != nullptr) {
         _file = path;
         ParseConfig();
       } else {
-        std::cerr<<"STRESS_TEST_CONFIG_FILE not set. Setting all default values. Duration:"<<_duration<<" Freq: "<<_freq<<" ProxyCategory_MaxThreshold: "<<_proxyCategoryMaxThreshold<< '\n';
+        //std::cerr<<"STRESS_TEST_CONFIG_FILE not set. Setting all default values. Duration:"<<_duration<<" Freq: "<<_freq<<" ProxyCategory_MaxThreshold: "<<_proxyCategoryMaxThreshold << " ThreadPool_MaxJobThreshold: "<<_threadPoolMaxJobThreshold<<'\n';
+        std::cerr<<"STRESS_TEST_CONFIG_FILE not set. Setting all default values."<<*this;
       }
     }
   public:
@@ -290,6 +371,16 @@ class ConfigReader {
     inline uint32_t Duration() const { return _duration;}
     inline uint32_t Freq() const { return _freq;}
     inline uint32_t ProxyCategoryMaxThreshold() const { return _proxyCategoryMaxThreshold;}
+    inline uint32_t ThreadPoolMaxJobThreshold() const { return _threadPoolMaxJobThreshold;}
+    friend std::ostream& operator<<(std::ostream& os, const ConfigReader& configReader) {
+    	os<<"\n********************************* Config Start ********************************\n"
+    	  <<"\t\tDuration: "<<configReader._duration<<"\n"
+          <<"\t\tFrequency: "<<configReader._freq<<"\n"
+	  <<"\t\tProxy Category Max Threshold: "<<configReader._proxyCategoryMaxThreshold<<"\n"
+	  <<"\t\tThreadPool Max Threshold: "<<configReader._threadPoolMaxJobThreshold<<"\n"
+    	  <<"********************************* Config End ********************************\n";
+	return os;
+    }
   private:
     void ParseConfig() {
       if(_file.Open(true) == true) {
@@ -316,12 +407,20 @@ class ConfigReader {
             std::cerr<<"ProxyCategory_MaxThreshold not set so setting default value to 1024\n";
             _proxyCategoryMaxThreshold = 1024;
           }
-          std::cerr<<"File Parsed. Duration:"<<_duration<<" Freq: "<<_freq<<" ProxyCategory_MaxThreshold: "<<_proxyCategoryMaxThreshold<< '\n';
+          if(config.ThreadPoolMaxJobThreshold.IsSet()){
+            _threadPoolMaxJobThreshold = config.ThreadPoolMaxJobThreshold.Value();
+          } else {
+            std::cerr<<"ProxyCategory_MaxThreshold not set so setting default value to 1024\n";
+            _threadPoolMaxJobThreshold = 1024;
+          }
+          //std::cerr<<"File Parsed. Duration:"<<_duration<<" Freq: "<<_freq<<" ProxyCategory_MaxThreshold: "<<_proxyCategoryMaxThreshold<< " ThreadPool_MaxJobThreshold: "<<_threadPoolMaxJobThreshold<<'\n';
+          std::cerr<<"File Parsed.\n"<<*this; 
         } else {
-          std::cerr<<"File Parse Error. Setting all default values. Duration:"<<_duration<<" Freq: "<<_freq<<" ProxyCategory_MaxThreshold: "<<_proxyCategoryMaxThreshold<< '\n';
+          std::cerr<<"File Parse Error. Setting all default values.\n"<<*this;
+          //std::cerr<<"File Parse Error. Setting all default values. Duration:"<<_duration<<" Freq: "<<_freq<<" ProxyCategory_MaxThreshold: "<<_proxyCategoryMaxThreshold<< " ThreadPool_MaxJobThreshold: "<<_threadPoolMaxJobThreshold<< '\n';
         }
       } else {
-        std::cerr<<"Unable to open file. Setting all default values. Duration:"<<_duration<<" Freq: "<<_freq<<" ProxyCategory_MaxThreshold: "<<_proxyCategoryMaxThreshold<< '\n';
+        std::cerr<<"Unable to open file. Setting all default values.\n"<<*this;
       }
     }
   private:
@@ -329,6 +428,7 @@ class ConfigReader {
     uint32_t _duration;
     uint32_t _freq;
     uint32_t _proxyCategoryMaxThreshold;
+    uint32_t _threadPoolMaxJobThreshold;
 };
 
 }

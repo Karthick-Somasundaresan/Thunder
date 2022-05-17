@@ -124,14 +124,14 @@ class TestAdapter: public AbstractTestInterface, public HandleNotification {
 
       _executor->AddListener(this);
     }
-    void ExecuteTest() {
+    void ExecuteTest() override {
       SetExecutionState(ExecutionState::RUNNING);
       SetExecutionStatus(ExecutionStatus::EXECUTING);
       _executor->StartExecution();
     }
 
 
-    void CancelTest() {
+    void CancelTest() override {
       SetExecutionState(ExecutionState::STOPPED);
       SetExecutionStatus(ExecutionStatus::CANCELLED);
       _executor->CancelExecution();
@@ -150,12 +150,12 @@ class TestAdapter: public AbstractTestInterface, public HandleNotification {
       SetExecutionState(ExecutionState::STOPPED);
       SetExecutionStatus(ExecutionStatus::SUCCESS);
     }
-    virtual void SetListener(HandleNotification* listner) {
+    virtual void SetListener(HandleNotification* listner) override {
       _listener = listner;
     }
     
 
-    string GetName() const {
+    string GetName() const override {
       return _executor->GetName() + " on " + _testClass.GetClassName();
     }
 
@@ -211,6 +211,7 @@ class LoadTestExecutor : public ExecutorInterface, public HandleNotification {
             _lastValue = currentValue;
           } else {
             _lastValue = 0;
+	    std::cout<<"Load Test Completed\n";
             _listener->HandleComplete();
           }
           return retVal;
@@ -227,7 +228,8 @@ class LoadTestExecutor : public ExecutorInterface, public HandleNotification {
     };
   public:
     template<typename... Args>
-    LoadTestExecutor(uint32_t noOfThreads, string category, Args&&... args): _noOfThreads(noOfThreads)
+    LoadTestExecutor(uint32_t noOfThreads, bool customThreads, string category, Args&&... args): _noOfThreads(noOfThreads)
+                                                          , _customThreads(customThreads)
                                                           , _executionCount(0)
                                                           , _cs()
                                                           , _listener(nullptr)
@@ -263,12 +265,16 @@ class LoadTestExecutor : public ExecutorInterface, public HandleNotification {
       _listener = listener;
     }
     string GetName() const override{
-      return "Load Test ";
+      if(_customThreads){
+        return "Load Test With Custom threads ";
+      } else {
+        return "Load Test ";
+      }
     }
     void HandleChange(Direction direction, uint32_t value) override {
       _listener->HandleChange(direction, value);
     }
-    void HandleComplete() {
+    void HandleComplete() override {
       _cs.Lock();
       _executionCount--;
       _cs.Unlock();
@@ -286,6 +292,7 @@ class LoadTestExecutor : public ExecutorInterface, public HandleNotification {
     }
   private:
     uint32_t _noOfThreads;
+    bool _customThreads;
     uint32_t _executionCount;
     Core::CriticalSection _cs;
     HandleNotification* _listener;
@@ -319,7 +326,9 @@ class StressTestExecutor : public ExecutorInterface , public HandleNotification{
 
           while(IsRunning() && Core::Time::Now() < expiryTime){
             _listener->HandleChange(_direction, 1);
+	    std::this_thread::yield();
           }
+	  std::cout<<"Stress Test Complete\n";
           _listener->HandleComplete();
           Block();
           return Core::infinite;
@@ -331,7 +340,8 @@ class StressTestExecutor : public ExecutorInterface , public HandleNotification{
     };
   public:
     template<typename... Args>
-    StressTestExecutor(uint32_t noOfThreads, string category, Args&&... args) : _noOfThreads((noOfThreads % 2) ? noOfThreads + 1 : noOfThreads)
+    StressTestExecutor(uint32_t noOfThreads, bool customThreads, string category, Args&&... args) : _noOfThreads((noOfThreads % 2) ? noOfThreads + 1 : noOfThreads)
+                                                                              , _customThreads(0)
                                                                               , _executionCount(0)
                                                                               , _cs()
                                                                               , _category(category)
@@ -381,7 +391,11 @@ class StressTestExecutor : public ExecutorInterface , public HandleNotification{
     }
 
     string GetName() const override{
-      return "Stress Test ";
+      if(_customThreads) {
+        return "Stress Test With Custom Threads ";
+      } else {
+        return "Stress Test ";
+      }
     }
     ~StressTestExecutor() {
       // _listOfTimers.clear();
@@ -397,6 +411,7 @@ class StressTestExecutor : public ExecutorInterface , public HandleNotification{
     }
   private:
     uint32_t _noOfThreads;
+    bool _customThreads;
     uint32_t _executionCount;
     Core::CriticalSection _cs;
     string _category;

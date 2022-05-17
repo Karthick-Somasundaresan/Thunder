@@ -20,6 +20,7 @@
 #include <signal.h>
 #include "StressTestCommon.h"
 
+const char* group = "Individual";
 int main() {
   char input;
   do{
