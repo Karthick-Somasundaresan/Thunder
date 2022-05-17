@@ -44,7 +44,7 @@
 
 #include <linux/version.h>
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,15,15)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,9,0)
 #include <sys/sysinfo.h>
 #else
 #ifdef __cplusplus
@@ -132,33 +132,6 @@ namespace Core {
 #else
     static const TCHAR _systemPrefix[] = _T("WPE");
 #endif
-
-    // Use MAC address and let the framework handle the OTP ID.
-    const uint8_t* SystemInfo::RawDeviceId() const
-    {
-        static uint8_t* MACAddress = nullptr;
-        static uint8_t MACAddressBuffer[7];
-
-        if (MACAddress == nullptr) {
-            bool valid = false;
-            Core::AdapterIterator adapters;
-
-            while ((adapters.Next() == true) && (valid == false)) {
-                uint8_t check = 1;
-                adapters.MACAddress(&MACAddressBuffer[1], 6);
-                while ((check <= 4) && (MACAddressBuffer[check] == 0)) {
-                    check++;
-                }
-                valid = (check <= 4);
-            }
-
-            MACAddressBuffer[0] = 6;
-
-            MACAddress = &MACAddressBuffer[0];
-        }
-
-        return MACAddress;
-    }
 
     string SystemInfo::Id(const uint8_t RawDeviceId[], const uint8_t KeyLength)
     {

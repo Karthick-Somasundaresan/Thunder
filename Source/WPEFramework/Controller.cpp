@@ -70,6 +70,9 @@ namespace Plugin {
 
         _resumes.clear();
         _service = service;
+        
+        RPC::ConnectorController::Instance().Announce(service);
+        
         _skipURL = static_cast<uint8_t>(_service->WebPrefix().length());
 
         Config config;
@@ -129,6 +132,8 @@ namespace Plugin {
 
         /* stop the file serving over http.... */
         service->DisableWebServer();
+
+        RPC::ConnectorController::Instance().Revoke(service);
     }
 
     /* virtual */ string Controller::Information() const
@@ -182,6 +187,132 @@ namespace Plugin {
         }
 
         return (result);
+    }
+
+    uint32_t Controller::Persist()
+    {
+        ASSERT(_pluginServer != nullptr);
+
+        uint32_t result = _pluginServer->Persist();
+
+        // Normalise return code
+        if (result != Core::ERROR_NONE) {
+            result = Core::ERROR_GENERAL;
+        }
+
+        return result;
+
+    }
+
+    uint32_t Controller::Delete(const string& path)
+    {
+        uint32_t result = Core::ERROR_UNKNOWN_KEY;
+        bool valid;
+        string normalized_path = Core::File::Normalize(path, valid);
+
+        ASSERT(_service != nullptr);
+
+        if (valid == false) {
+            result = Core::ERROR_PRIVILIGED_REQUEST;
+        }
+        else {
+            Core::File file(_service->PersistentPath() + normalized_path);
+
+            if (file.Exists() == false) {
+                result = Core::ERROR_UNKNOWN_KEY;
+            }
+            else if (file.IsDirectory() == true) {
+                result = (Core::Directory((_service->PersistentPath() + normalized_path).c_str()).Destroy() == true) ? Core::ERROR_NONE : Core::ERROR_DESTRUCTION_FAILED;
+            }
+            else {
+                result = (file.Destroy() == true) ? Core::ERROR_NONE : Core::ERROR_DESTRUCTION_FAILED;
+            }
+        }
+
+        return result;
+    }
+
+    uint32_t Controller::Reboot()
+    {
+        uint32_t result =  Core::System::Reboot();
+
+        if ((result != Core::ERROR_NONE) && (result != Core::ERROR_UNAVAILABLE) && (result != Core::ERROR_PRIVILIGED_REQUEST) && (result != Core::ERROR_GENERAL)) {
+            result = Core::ERROR_GENERAL;
+        }
+
+        return result;
+    }
+
+    uint32_t Controller::Environment(const string& index, string& environment) const
+    {
+        uint32_t result = Core::ERROR_UNKNOWN_KEY;
+
+        if (Core::SystemInfo::GetEnvironment(index, environment) == true) {
+            result = Core::ERROR_NONE;
+        }
+
+        return result;
+    }
+
+    uint32_t Controller::Configuration(const string& callsign, string& configuration) const 
+    {
+        uint32_t result = Core::ERROR_UNKNOWN_KEY;
+        Core::ProxyType<PluginHost::Server::Service> service;
+
+        ASSERT(_pluginServer != nullptr);
+
+        if (_pluginServer->Services().FromIdentifier(callsign, service) == Core::ERROR_NONE) {
+            configuration = service->ConfigLine();
+            result = Core::ERROR_NONE;
+        }
+
+        return result;
+    }
+
+    uint32_t Controller::Configuration(const string& callsign, const string& configuration)
+    {
+        uint32_t result = Core::ERROR_UNKNOWN_KEY;
+        Core::ProxyType<PluginHost::Server::Service> service;
+
+        ASSERT(_pluginServer != nullptr);
+
+        if (_pluginServer->Services().FromIdentifier(callsign, service) == Core::ERROR_NONE) {
+            result = service->ConfigLine(configuration);
+
+            // Normalise return code
+            if (result != Core::ERROR_NONE) {
+                result = Core::ERROR_GENERAL;
+            }
+        }
+
+        return result;
+    }
+
+    uint32_t Controller::Clone(const string& basecallsign, const string& newcallsign) 
+    {
+        uint32_t result = Core::ERROR_NONE;
+        const string controllerName = _pluginServer->Controller()->Callsign();
+
+        ASSERT(_pluginServer != nullptr);
+
+        if ((basecallsign.empty() == false) && (basecallsign.empty() == false) && (basecallsign != controllerName) && (newcallsign != controllerName)) {
+            Core::ProxyType<PluginHost::Server::Service> baseService, newService;
+
+            if (_pluginServer->Services().FromIdentifier(basecallsign, baseService) != Core::ERROR_NONE) {
+                result = Core::ERROR_UNKNOWN_KEY;
+            }
+            else if (_pluginServer->Services().FromIdentifier(newcallsign, newService) != Core::ERROR_NONE) {
+                result = _pluginServer->Services().Clone(baseService, newcallsign, newService);
+            }
+            else if (baseService->ClassName() != newService->ClassName()) {
+                result = Core::ERROR_GENERAL;
+            }
+        }
+        else {
+            result = Core::ERROR_PRIVILIGED_REQUEST;
+        }
+
+        return result;
     }
 
     Core::ProxyType<Web::Response> Controller::GetMethod(Core::TextSegmentIterator& index) const
@@ -464,9 +595,18 @@ namespace Plugin {
                     remainder = index.Remainder().Text();
                 }
 
-                Core::Directory((_service->PersistentPath() + remainder).c_str()).Destroy(true);
+                bool valid;
+                string normalized(Core::File::Normalize(remainder, valid));
 
-                result->Message = "OK";
+                if (valid == false) {
+                    result->Message = "incorrect path";
+                    result->ErrorCode = Web::STATUS_BAD_REQUEST;
+                }
+                else {
+                    Core::Directory((_service->PersistentPath() + normalized).c_str()).Destroy();
+                    result->Message = "OK";
+                    result->ErrorCode = Web::STATUS_OK;
+                }
             }
         }
         return (result);
@@ -572,7 +712,7 @@ namespace Plugin {
             Notify("subsystemchange", responseJsonRpc);
         }
     }
-    /* virtual */ Core::ProxyType<Core::JSONRPC::Message> Controller::Invoke(const string& token, const uint32_t channelId, const Core::JSONRPC::Message& inbound)
+    /* virtual */ Core::ProxyType<Core::JSONRPC::Message> Controller::Invoke(const Core::JSONRPC::Context& context, const Core::JSONRPC::Message& inbound)
     {
         uint32_t result = Core::ERROR_BAD_REQUEST;
         bool asyncCall = false;
@@ -580,7 +720,7 @@ namespace Plugin {
         Core::ProxyType<Core::JSONRPC::Message> response;
 
         if (callsign.empty() || (callsign == PluginHost::JSONRPC::Callsign())) {
-            response = PluginHost::JSONRPC::Invoke(token, channelId, inbound);
+            response = PluginHost::JSONRPC::Invoke(context, inbound);
 		} else {
 			Core::ProxyType<PluginHost::Server::Service> service;
 
@@ -595,7 +735,7 @@ namespace Plugin {
                 forwarder.Parameters = inbound.Parameters;
                     
                 forwarder.Designator = inbound.VersionedFullMethod();
-                response = service->Invoke(token, channelId, forwarder);
+                response = service->Invoke(context, forwarder);
                 asyncCall = (response.IsValid() == false);
             }
         }

@@ -549,7 +549,7 @@ namespace Core {
         ~IPAddressModifyType() override = default;
 
     private:
-        uint16_t Write(uint8_t stream[], const uint16_t length) const override
+        uint16_t Write(uint8_t stream[], const uint16_t length VARIABLE_IS_NOT_USED) const override
         {
             uint16_t result = sizeof(struct ifaddrmsg) + 2 * (RTA_LENGTH(_node.Type() == NodeId::TYPE_IPV6 ? 16 : 4));
 
@@ -864,7 +864,7 @@ namespace Core {
                     }
 
                 private:
-                    uint16_t Write(uint8_t stream[], const uint16_t maxLength) const override
+                    uint16_t Write(uint8_t stream[], const uint16_t maxLength VARIABLE_IS_NOT_USED) const override
                     {
                         const uint16_t length = sizeof(struct ifinfomsg);
                         ASSERT(length <= maxLength);
@@ -896,7 +896,7 @@ namespace Core {
                     }
 
                 private:
-                    uint16_t Write(uint8_t stream[], const uint16_t maxLength) const override
+                    uint16_t Write(uint8_t stream[], const uint16_t maxLength VARIABLE_IS_NOT_USED) const override
                     {
                         const uint16_t length = sizeof(struct ifaddrmsg);
                         ASSERT(length <= maxLength);
@@ -1667,7 +1667,7 @@ namespace Core {
     bool AdapterIterator::HasMAC() const
     {
         uint8_t index = 0;
-        uint8_t mac[6];
+        uint8_t mac[MacSize];
         MACAddress(mac, sizeof(mac));
 
         while ((index < sizeof(mac)) && (mac[index] == 0)) {

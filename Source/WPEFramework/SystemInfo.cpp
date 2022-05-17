@@ -21,9 +21,7 @@
 namespace WPEFramework {
 namespace PluginHost {
 
-#ifdef __WINDOWS__
-#pragma warning(disable : 4355)
-#endif
+PUSH_WARNING(DISABLE_WARNING_THIS_IN_MEMBER_INITIALIZER_LIST)
     SystemInfo::SystemInfo(const Config& config, Core::IDispatch* callback)
         : _adminLock()
         , _config(config)
@@ -39,9 +37,7 @@ namespace PluginHost {
     {
         ASSERT(callback != nullptr);
     }
-#ifdef __WINDOWS__
-#pragma warning(default : 4355)
-#endif
+POP_WARNING()
 
     /* virtual */ SystemInfo::~SystemInfo()
     {
@@ -90,6 +86,38 @@ namespace PluginHost {
         }
 
         _adminLock.Unlock();
+    }
+
+    // Use MAC address and let the framework handle the OTP ID.
+    const uint8_t* SystemInfo::RawDeviceId(const string& interfaceName) const
+    {
+        static uint8_t* MACAddress = nullptr;
+        static uint8_t MACAddressBuffer[Core::AdapterIterator::MacSize + 1];
+
+        if (MACAddress == nullptr) {
+            memset(MACAddressBuffer, 0, Core::AdapterIterator::MacSize + 1);
+
+            if (interfaceName.empty() != true) {
+
+                Core::AdapterIterator adapter(interfaceName);
+                if ((adapter.IsValid() == true) && adapter.HasMAC() == true) {
+                    adapter.MACAddress(&MACAddressBuffer[1], Core::AdapterIterator::MacSize);
+                }
+            } else {
+
+                Core::AdapterIterator adapters;
+                while ((adapters.Next() == true)) {
+                    if (adapters.HasMAC() == true) {
+                        adapters.MACAddress(&MACAddressBuffer[1], Core::AdapterIterator::MacSize);
+                        break;
+                    }
+                }
+            }
+            MACAddressBuffer[0] = Core::AdapterIterator::MacSize;
+            MACAddress = &MACAddressBuffer[0];
+        }
+
+        return MACAddress;
     }
 
     void SystemInfo::Update()

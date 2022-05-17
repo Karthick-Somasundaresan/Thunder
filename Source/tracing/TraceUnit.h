@@ -35,7 +35,7 @@ namespace Trace {
     struct ITraceControl;
     struct ITrace;
 
-    constexpr uint32_t CyclicBufferSize = ((8 * 1024) - (sizeof(struct Core::CyclicBuffer::control))); /* 8Kb */
+    constexpr uint32_t CyclicBufferSize = ((16 * 1024) - (sizeof(struct Core::CyclicBuffer::control))); /* 16Kb */
     extern EXTERNAL const TCHAR* CyclicBufferName;
 
     // ---- Class Definition ----
@@ -84,9 +84,7 @@ namespace Trace {
                     }
                     Enabled = rhs.Enabled();
                 }
-                virtual ~JSON()
-                {
-                }
+                ~JSON() override = default;
 
             public:
                 Core::JSON::String Module;

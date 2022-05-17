@@ -440,6 +440,7 @@ namespace PluginHost {
                 , _termination(plugin.Termination, false)
                 , _activity(0)
                 , _connection(nullptr)
+                , _lastId(0)
                 , _administrator(administrator)
             {
             }
@@ -656,7 +657,7 @@ namespace PluginHost {
 
                 return (result);
             }
-            Core::ProxyType<Core::JSONRPC::Message> Invoke(const string& token, const uint32_t id, const Core::JSONRPC::Message& message)
+            Core::ProxyType<Core::JSONRPC::Message> Invoke(const Core::JSONRPC::Context& context, const Core::JSONRPC::Message& message)
             {
                 Core::ProxyType<Core::JSONRPC::Message> result;
 
@@ -679,7 +680,7 @@ namespace PluginHost {
                     IncrementProcessedRequests();
 #endif
                     Core::InterlockedIncrement(_activity);
-                    result = service->Invoke(token, id, message);
+                    result = service->Invoke(context, message);
                     Core::InterlockedDecrement(_activity);
 
                     service->Release();
@@ -874,6 +875,24 @@ namespace PluginHost {
                 return (_administrator.RemoteConnection(connectionId));
             }
 
+            void Closed(const uint32_t id)
+            {
+                IDispatcher* dispatcher = nullptr;
+
+                _pluginHandling.Lock();
+                if (_handler != nullptr) {
+                    dispatcher = _handler->QueryInterface<IDispatcher>();
+                }
+                _pluginHandling.Unlock();
+
+                if (dispatcher != nullptr) {
+                    dispatcher->Close(id);
+                    dispatcher->Release();
+                    // Could be that we can now drop the dynamic library...
+                    Core::ServiceAdministrator::Instance().FlushLibraries();
+                }
+            }
+
             // Methods to Activate and Deactivate the aggregated Plugin to this shell.
             // These are Blocking calls!!!!!
             uint32_t Activate(const reason) override;
@@ -1028,6 +1047,16 @@ namespace PluginHost {
                     _jsonrpc->Release();
                     _jsonrpc = nullptr;
                 }
+                if (_connection != nullptr) {
+                    // Lets record the ID associated with this connection.
+                    // If the other end of this connection (indicated by the
+                    // ID) is not destructed the next time we start this plugin
+                    // again, we will forcefully kill it !!!
+                    _lastId = _connection->Id();
+
+                    _connection->Release();
+                    _connection = nullptr;
+                }
 
                 _handler = nullptr;
 
@@ -1061,6 +1090,7 @@ namespace PluginHost {
             Condition _termination;
             uint32_t _activity;
             RPC::IRemoteConnection* _connection;
+            uint32_t _lastId;
 
             ServiceMap& _administrator;
             static Core::ProxyType<Web::Response> _unavailableHandler;
@@ -1102,9 +1132,7 @@ namespace PluginHost {
                     Add(_T("configuration"), &Configuration);
                 }
 
-                virtual ~Plugin()
-                {
-                }
+                ~Plugin() override = default;
 
             public:
                 Core::JSON::Boolean AutoStart;
@@ -1354,6 +1382,8 @@ namespace PluginHost {
                     const string& appPath,
                     const string& proxyStubPath,
                     const string& postMortemPath,
+                    const uint8_t softKillCheckWaitTime,
+                    const uint8_t hardKillCheckWaitTime,
                     const Core::ProxyType<RPC::InvokeServer>& handler)
                     : RPC::Communicator(node, proxyStubPath.empty() == false ? Core::Directory::Normalize(proxyStubPath) : proxyStubPath, Core::ProxyType<Core::IIPCServer>(handler))
                     , _parent(parent)
@@ -1380,6 +1410,7 @@ namespace PluginHost {
                         // We need to pass the communication channel NodeId via an environment variable, for process,
                         // not being started by the rpcprocess...
                         Core::SystemInfo::SetEnvironment(string(CommunicatorConnector), RPC::Communicator::Connector());
+                        RPC::Communicator::ForcedDestructionTimes(softKillCheckWaitTime, hardKillCheckWaitTime);
                     }
                 }
                 virtual ~CommunicatorServer()
@@ -1653,18 +1684,14 @@ namespace PluginHost {
                 SubSystems(const SubSystems&) = delete;
                 SubSystems& operator=(const SubSystems&) = delete;
 
-                #ifdef __WINDOWS__
-                #pragma warning(disable : 4355)
-                #endif
+PUSH_WARNING(DISABLE_WARNING_THIS_IN_MEMBER_INITIALIZER_LIST)
                 SubSystems(ServiceMap* parent)
                     : SystemInfo(parent->Configuration(), this)
                     , _parent(*parent)
                     , _job(*this)
                 {
                 }
-                #ifdef __WINDOWS__
-                #pragma warning(default : 4355)
-                #endif
+POP_WARNING()
                 ~SubSystems() override
                 {
                     Core::ProxyType<Core::IDispatch> job(_job.Revoke());
@@ -1710,9 +1737,7 @@ namespace PluginHost {
             ServiceMap(const ServiceMap&) = delete;
             ServiceMap& operator=(const ServiceMap&) = delete;
 
-#ifdef __WINDOWS__
-#pragma warning(disable : 4355)
-#endif
+PUSH_WARNING(DISABLE_WARNING_THIS_IN_MEMBER_INITIALIZER_LIST)
             ServiceMap(Server& server, Config& config)
                 : _webbridgeConfig(config)
                 , _adminLock()
@@ -1729,16 +1754,16 @@ namespace PluginHost {
                     config.VolatilePath(), 
                     config.AppPath(), 
                     config.ProxyStubPath(), 
-                    config.PostMortemPath(), 
+                    config.PostMortemPath(),
+                    config.SoftKillCheckWaitTime(),
+                    config.HardKillCheckWaitTime(),
                     _engine)
                 , _server(server)
                 , _subSystems(this)
                 , _authenticationHandler(nullptr)
             {
             }
-#ifdef __WINDOWS__
-#pragma warning(default : 4355)
-#endif
+POP_WARNING()
             ~ServiceMap()
             {
                 // Make sure all services are deactivated before we are killed (call Destroy on this object);
@@ -1893,6 +1918,9 @@ namespace PluginHost {
             {
                 return (_processAdministrator.Create(sessionId, object, waitTime, dataPath, persistentPath, volatilePath));
             }
+            void Destroy(const uint32_t id) {
+                _processAdministrator.Destroy(id);
+            }
             void Register(RPC::IRemoteConnection::INotification* sink)
             {
                 _processAdministrator.Register(sink);
@@ -1912,6 +1940,19 @@ namespace PluginHost {
             RPC::IRemoteConnection* RemoteConnection(const uint32_t connectionId)
             {
                 return (connectionId != 0 ? _processAdministrator.Connection(connectionId) : nullptr);
+            }
+            void Closed(const uint32_t id) {
+                _adminLock.Lock();
+
+                // First stop all services running ...
+                std::map<const string, Core::ProxyType<Service>>::iterator index(_services.begin());
+
+                while (index != _services.end()) {
+                    index->second->Closed(id);
+                    ++index;
+                }
+
+                _adminLock.Unlock();
             }
             inline Core::ProxyType<Service> Insert(const Plugin::Config& configuration)
             {
@@ -2192,7 +2233,8 @@ namespace PluginHost {
                 Core::ProxyType<Core::JSONRPC::Message> Process(const string& token, const Core::ProxyType<Core::JSONRPC::Message>& message)
                 {
                     Core::ProxyType<Core::JSONRPC::Message> result;
-                    REPORT_DURATION_WARNING( { result = _service->Invoke(token, _ID, *message); }, WarningReporting::TooLongInvokeMessage, *message);  
+                    Core::JSONRPC::Context context (_ID, message->Id.Value(), token);
+                    REPORT_DURATION_WARNING( { result = _service->Invoke(context, *message); }, WarningReporting::TooLongInvokeMessage, *message);  
                     return result;
                 }
                 Core::ProxyType<Web::Response> Process(const Core::ProxyType<Web::Request>& message)
@@ -2272,33 +2314,39 @@ namespace PluginHost {
                     Core::ProxyType<Web::Response> response;
 
                     if (_jsonrpc == true) {
-                        Core::ProxyType<Core::JSONRPC::Message> message(_request->Body<Core::JSONRPC::Message>());
+                        if(_request->Verb == Request::HTTP_POST){
+                            Core::ProxyType<Core::JSONRPC::Message> message(_request->Body<Core::JSONRPC::Message>());
 
-                        if (message->IsSet()) {
-                            Core::ProxyType<Core::JSONRPC::Message> body = Job::Process(_token, message);
+                            if (message->IsSet()) {
+                                Core::ProxyType<Core::JSONRPC::Message> body = Job::Process(_token, message);
 
-                            // If we have no response body, it looks like an async-call...
-                            if (body.IsValid() == false) {
-                                // It's a a-synchronous call, seems we should just queue this request, it will be answered later on..
-                                if (_request->Connection.Value() == Web::Request::CONNECTION_CLOSE) {
-                                    Job::RequestClose();
+                                // If we have no response body, it looks like an async-call...
+                                if (body.IsValid() == false) {
+                                    // It's a a-synchronous call, seems we should just queue this request, it will be answered later on..
+                                    if (_request->Connection.Value() == Web::Request::CONNECTION_CLOSE) {
+                                        Job::RequestClose();
+                                    }
                                 }
-                            }
-                            else {
+                                else {
+                                    response = IFactories::Instance().Response();
+                                    response->Body(body);
+                                    if (body->Error.IsSet() == false) {
+                                        response->ErrorCode = Web::STATUS_OK;
+                                        response->Message = _T("JSONRPC executed succesfully");
+                                    } else {
+                                        response->ErrorCode = Web::STATUS_ACCEPTED;
+                                        response->Message = _T("Failure on JSONRPC: ") + Core::NumberType<uint32_t>(body->Error.Code).Text();
+                                    }
+                                }
+                            } else {
                                 response = IFactories::Instance().Response();
-                                response->Body(body);
-                                if (body->Error.IsSet() == false) {
-                                    response->ErrorCode = Web::STATUS_OK;
-                                    response->Message = _T("JSONRPC executed succesfully");
-                                } else {
-                                    response->ErrorCode = Web::STATUS_ACCEPTED;
-                                    response->Message = _T("Failure on JSONRPC: ") + Core::NumberType<uint32_t>(body->Error.Code).Text();
-                                }
+                                response->ErrorCode = Web::STATUS_ACCEPTED;
+                                response->Message = _T("Failed to parse JSONRPC message");
                             }
                         } else {
                             response = IFactories::Instance().Response();
-                            response->ErrorCode = Web::STATUS_ACCEPTED;
-                            response->Message = _T("Failed to parse JSONRPC message");
+                            response->ErrorCode = Web::STATUS_METHOD_NOT_ALLOWED;
+                            response->Message = _T("JSON-RPC only supported via POST request");
                         }
                     } else {
                         response = Job::Process(_request);
@@ -2376,7 +2424,7 @@ namespace PluginHost {
 #if THUNDER_PERFORMANCE
                         Core::ProxyType<TrackingJSONRPC> tracking (_element);
                         ASSERT (tracking.IsValid() == true);
-			            tracking->Dispatch();
+                                    tracking->Dispatch();
 #endif
                         Core::ProxyType<Core::JSONRPC::Message> message(_element);
                         ASSERT(message.IsValid() == true);
@@ -2384,7 +2432,7 @@ namespace PluginHost {
                         _element = Core::ProxyType<Core::JSON::IElement>(Job::Process(_token, message));
 
 #if THUNDER_PERFORMANCE
-			tracking->Execution();
+                        tracking->Execution();
 #endif
 
                     } else {
@@ -2817,6 +2865,7 @@ namespace PluginHost {
                     }
 
                     State(CLOSED, false);
+                    _parent.Closed(Id());
                     _parent.Dispatcher().TriggerCleanup();
 
                 } else if (IsUpgrading() == true) {
@@ -2916,9 +2965,7 @@ namespace PluginHost {
             ChannelMap(const ChannelMap&) = delete;
             ChannelMap& operator=(const ChannelMap&) = delete;
 
-            #ifdef __WINDOWS__
-            #pragma warning(disable : 4355)
-            #endif
+PUSH_WARNING(DISABLE_WARNING_THIS_IN_MEMBER_INITIALIZER_LIST)
             ChannelMap(Server& parent, const Core::NodeId& listeningNode, const uint16_t connectionCheckTimer)
                 : Core::SocketServerType<Channel>(listeningNode)
                 , _parent(parent)
@@ -2936,9 +2983,7 @@ namespace PluginHost {
                     }
                 }
             }
-            #ifdef __WINDOWS__
-            #pragma warning(default : 4355)
-            #endif
+POP_WARNING()
             ~ChannelMap()
             {
                 Core::ProxyType<Core::IDispatch> job(_job.Revoke());
@@ -3104,7 +3149,7 @@ namespace PluginHost {
         }
 
     private:
-        inline Core::ProxyType<Service> Controller()
+        Core::ProxyType<Service> Controller()
         {
             return (_controller);
         }
@@ -3112,9 +3157,12 @@ namespace PluginHost {
         {
             return (_services.Officer(token));
         }
-        inline ISecurity* Officer()
+        ISecurity* Officer()
         {
             return (_config.Security());
+        }
+        void Closed(const uint32_t id) {
+            _services.Closed(id);
         }
 
     private:

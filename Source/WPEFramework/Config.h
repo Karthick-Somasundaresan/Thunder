@@ -133,9 +133,7 @@ namespace PluginHost {
                     Add(_T("value"), &Value);
                     Add(_T("override"), &Override);
                 }
-                virtual ~Environment()
-                {
-                }
+                ~Environment() override = default;
                 Environment& operator=(const Environment& RHS)
                 {
                     Key = RHS.Key;
@@ -314,16 +312,20 @@ namespace PluginHost {
                 , Redirect(_T("http://127.0.0.1/Service/Controller/UI"))
                 , Signature(_T("TestSecretKey"))
                 , IdleTime(0)
+                , SoftKillCheckWaitTime(10)
+                , HardKillCheckWaitTime(4)
                 , IPV6(false)
-                , DefaultTraceCategories(false)
+                , DefaultMessagingCategories(false)
                 , DefaultWarningReportingCategories(false)
                 , Process()
                 , Input()
                 , Configs()
+                , EthernetCard()
                 , Environments()
                 , ExitReasons()
                 , Latitude(51832547) // Divider 1.000.000
                 , Longitude(5674899) // Divider 1.000.000
+                , MessagingPort(0)
 #ifdef PROCESSCONTAINERS_ENABLED
                 , ProcessContainers()
 #endif
@@ -345,18 +347,26 @@ namespace PluginHost {
                 Add(_T("communicator"), &Communicator);
                 Add(_T("signature"), &Signature);
                 Add(_T("idletime"), &IdleTime);
+                Add(_T("softkillcheckwaittime"), &SoftKillCheckWaitTime);
+                Add(_T("hardkillcheckwaittime"), &HardKillCheckWaitTime);
                 Add(_T("ipv6"), &IPV6);
-                Add(_T("tracing"), &DefaultTraceCategories); 
+#ifdef __CORE_MESSAGING__
+                Add(_T("messaging"), &DefaultMessagingCategories);
+#else
+                Add(_T("tracing"), &DefaultMessagingCategories);
+#endif
                 Add(_T("warningreporting"), &DefaultWarningReportingCategories); 
                 Add(_T("redirect"), &Redirect);
                 Add(_T("process"), &Process);
                 Add(_T("input"), &Input);
                 Add(_T("plugins"), &Plugins);
                 Add(_T("configs"), &Configs);
+                Add(_T("ethernetcard"), &EthernetCard);
                 Add(_T("environments"), &Environments);
                 Add(_T("exitreasons"), &ExitReasons);
                 Add(_T("latitude"), &Latitude);
                 Add(_T("longitude"), &Longitude);
+                Add(_T("messagingport"), &MessagingPort);
 #ifdef PROCESSCONTAINERS_ENABLED
                 Add(_T("processcontainers"), &ProcessContainers);
 #endif
@@ -382,17 +392,21 @@ namespace PluginHost {
             Core::JSON::String Redirect;
             Core::JSON::String Signature;
             Core::JSON::DecUInt16 IdleTime;
+            Core::JSON::DecUInt8 SoftKillCheckWaitTime;
+            Core::JSON::DecUInt8 HardKillCheckWaitTime;
             Core::JSON::Boolean IPV6;
-            Core::JSON::String DefaultTraceCategories;
+            Core::JSON::String DefaultMessagingCategories; 
             Core::JSON::String DefaultWarningReportingCategories; 
             ProcessSet Process;
             InputConfig Input;
             Core::JSON::String Configs;
+            Core::JSON::String EthernetCard;
             Core::JSON::ArrayType<Plugin::Config> Plugins;
             Core::JSON::ArrayType<Environment> Environments;
             Core::JSON::ArrayType<Core::JSON::EnumType<PluginHost::IShell::reason>> ExitReasons;
             Core::JSON::DecSInt32 Latitude;
             Core::JSON::DecSInt32 Longitude;
+            Core::JSON::DecUInt16 MessagingPort;
 #ifdef PROCESSCONTAINERS_ENABLED
             ProcessContainerConfig ProcessContainers;
 #endif
@@ -504,9 +518,7 @@ namespace PluginHost {
         Config(const Config&) = delete;
         Config& operator=(const Config&) = delete;
 
-        #ifdef __WINDOWS__
-        #pragma warning(disable: 4355)
-        #endif
+PUSH_WARNING(DISABLE_WARNING_THIS_IN_MEMBER_INITIALIZER_LIST)
         Config(Core::File& file, const bool background, Core::OptionalType<Core::JSON::Error>& error)
             : _background(background)
             , _security(nullptr)
@@ -541,6 +553,8 @@ namespace PluginHost {
                 _redirect = config.Redirect.Value();
                 _version = config.Version.Value();
                 _idleTime = config.IdleTime.Value();
+                _softKillCheckWaitTime = config.SoftKillCheckWaitTime.Value();
+                _hardKillCheckWaitTime = config.HardKillCheckWaitTime.Value();
                 _IPV6 = config.IPV6.Value();
                 _binding = config.Binding.Value();
                 _interface = config.Interface.Value();
@@ -548,16 +562,18 @@ namespace PluginHost {
                 _stackSize = config.Process.IsSet() ? config.Process.StackSize.Value() : 0;
                 _inputInfo.Set(config.Input);
                 _processInfo.Set(config.Process);
+                _ethernetCard = config.EthernetCard.Value();
                 _latitude = config.Latitude.Value();
                 _longitude = config.Longitude.Value();
+                _messagingPort = config.MessagingPort.Value();
 
-                _traceCategoriesFile = config.DefaultTraceCategories.IsQuoted();
-                if (_traceCategoriesFile == true) {
-                    config.DefaultTraceCategories.SetQuoted(true);
+                _messagingCategoriesFile = config.DefaultMessagingCategories.IsQuoted();
+                if (_messagingCategoriesFile == true) {
+                    config.DefaultMessagingCategories.SetQuoted(true);
                 }
-                _traceCategories = config.DefaultTraceCategories.Value();
-
+                _messagingCategories = config.DefaultMessagingCategories.Value();
                 _warningReportingCategories = config.DefaultWarningReportingCategories.Value();
+
 
                 if (config.Model.IsSet()) {
                     _model = config.Model.Value();
@@ -599,9 +615,7 @@ namespace PluginHost {
                     _linkerPluginPaths.push_back(itr.Current().Value());
             }
         }
-        #ifdef __WINDOWS__
-        #pragma warning(default: 4355)
-        #endif
+POP_WARNING()
         ~Config()
         {
             ASSERT(_security != nullptr);
@@ -632,13 +646,13 @@ namespace PluginHost {
         {
             return (_model);
         }
-        inline bool TraceCategoriesFile() const
+        inline bool MessagingCategoriesFile() const
         {
-            return (_traceCategoriesFile);
+            return (_messagingCategoriesFile);
         }
-        inline const string& TraceCategories() const
+        inline const string& MessagingCategories() const
         {
-            return (_traceCategories);
+            return (_messagingCategories);
         }
         inline const string& WarningReportingCategories() const
         {
@@ -736,11 +750,20 @@ namespace PluginHost {
             Core::SafeSyncType<Core::CriticalSection> scopedLock(_configLock);
             _idleTime = newValue;
         }
+        inline uint8_t SoftKillCheckWaitTime() const {
+            return _softKillCheckWaitTime;
+        }
+        inline uint8_t HardKillCheckWaitTime() const {
+            return _hardKillCheckWaitTime;
+        }
         inline const string& URL() const {
             return (_URL);
         }
         inline uint32_t StackSize() const {
             return (_stackSize);
+        }
+        inline string EthernetCard() const {
+            return _ethernetCard;
         }
         inline int32_t Latitude() const {
             Core::SafeSyncType<Core::CriticalSection> scopedLock(_configLock);
@@ -753,6 +776,9 @@ namespace PluginHost {
         inline int32_t Longitude() const {
             Core::SafeSyncType<Core::CriticalSection> scopedLock(_configLock);
             return (_longitude);
+        }
+        inline uint16_t MessagingPort() const {
+            return (_messagingPort);
         }
         inline void SetLongitude(const int32_t newValue){
             Core::SafeSyncType<Core::CriticalSection> scopedLock(_configLock);
@@ -910,18 +936,22 @@ namespace PluginHost {
         ISecurity* _security;
         string _version;
         string _model;
-        string _traceCategories;
-        bool _traceCategoriesFile;
+        string _messagingCategories;
+        bool _messagingCategoriesFile;
         string _warningReportingCategories;
         string _binding;
         string _interface;
         string _URL;
+        string _ethernetCard;
         uint16_t _portNumber;
         bool _IPV6;
         uint16_t _idleTime;
+        uint8_t _softKillCheckWaitTime;
+        uint8_t _hardKillCheckWaitTime;
         uint32_t _stackSize;
         int32_t _latitude;
         int32_t _longitude;
+        uint16_t _messagingPort;
         InputInfo _inputInfo;
         ProcessInfo _processInfo;
         Core::JSON::ArrayType<Plugin::Config> _plugins;

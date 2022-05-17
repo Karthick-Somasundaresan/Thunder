@@ -73,7 +73,7 @@ namespace PluginHost
             {
                 Add(_T("root"), &Config);
             }
-            virtual ~RootObject() {}
+            ~RootObject() override = default;
 
         public:
             Core::JSON::String Config;
@@ -95,7 +95,7 @@ namespace PluginHost
             , Group()
             , Threads(1)
             , Priority(0)
-            , OutOfProcess(true)
+            , OutOfProcess(false)
             , Mode(ModeType::LOCAL)
             , LinkLoaderPath()
             , RemoteAddress()
@@ -119,7 +119,7 @@ namespace PluginHost
             , Group()
             , Threads()
             , Priority(0)
-            , OutOfProcess(true)
+            , OutOfProcess(false)
             , Mode(ModeType::LOCAL)
             , LinkLoaderPath()
             , RemoteAddress()

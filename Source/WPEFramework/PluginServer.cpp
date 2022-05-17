@@ -187,7 +187,6 @@ namespace PluginHost
 
     void Server::ChannelMap::GetMetaData(Core::JSON::ArrayType<MetaData::Channel> & metaData) const
     {
-
         Core::SocketServerType<Channel>::Iterator index(Core::SocketServerType<Channel>::Clients());
 
         while (index.Next() == true) {
@@ -216,45 +215,40 @@ namespace PluginHost
     {
         _adminLock.Lock();
 
-        std::map<const string, Core::ProxyType<Service>>::iterator index(_services.end());
-
-        TRACE_L1("Deactivating %d plugins.", static_cast<uint32_t>(_services.size()));
+        std::map<const string, Core::ProxyType<Service>>::iterator index(_services.begin());
+        std::list< Core::ProxyType<Service> > deactivationList;
 
         // First, move them all to deactivated except Controller
         Core::ProxyType<Service> controller (_server.Controller());
-        do {
-            index--;
-
-            ASSERT(index->second.IsValid());
-
-            if (index->first.c_str() != controller->Callsign()) {
-                index->second->Deactivate(PluginHost::IShell::SHUTDOWN);
-            }
-        } while (index != _services.begin());
-
-        TRACE_L1("Destructing %d plugins.", static_cast<uint32_t>(_services.size()));
-        // Now deactivate controller plugin, once other plugins are deactivated
-        controller->Deactivate(PluginHost::IShell::SHUTDOWN);
-
-        // Now release them all
-        index = _services.begin();
 
         while (index != _services.end()) {
+
             Core::ProxyType<Service> service(index->second);
 
             ASSERT(service.IsValid());
 
+            if (index->first.c_str() != controller->Callsign()) {
+                deactivationList.push_back(service);
+            }
+
             index = _services.erase(index);
-
-            service.Release();
         }
-
-        Core::ServiceAdministrator::Instance().FlushLibraries();
 
         _adminLock.Unlock();
 
+        TRACE_L1("Destructing %d plugins.", static_cast<uint32_t>(_services.size()));
+
+        for (Core::ProxyType<Service>& entry : deactivationList) {
+            entry->Deactivate(PluginHost::IShell::SHUTDOWN);
+        }
+
+        // Now deactivate controller plugin, once other plugins are deactivated
+        controller->Deactivate(PluginHost::IShell::SHUTDOWN);
+
+        Core::ServiceAdministrator::Instance().FlushLibraries();
+
         TRACE_L1("Pending notifiers are %lu", _notifiers.size());
-        for (auto notifier : _notifiers) {
+        for (VARIABLE_IS_NOT_USED auto notifier : _notifiers) {
             TRACE_L1("   -->  %s", Core::ClassNameOnly(typeid(*notifier).name()).Text().c_str());
         }
 
@@ -265,7 +259,6 @@ namespace PluginHost
 
     /* virtual */ void* Server::Service::QueryInterface(const uint32_t id)
     {
-
         void* result = nullptr;
         if (id == Core::IUnknown::ID) {
             AddRef();
@@ -338,6 +331,36 @@ namespace PluginHost
                 _reason = why;
                 State(PRECONDITION);
 
+#ifdef __CORE_MESSAGING__
+                if (Messaging::ControlLifetime<Activity, &Core::System::MODULE_NAME, Core::Messaging::MetaData::MessageType::TRACING>::IsEnabled() == true) {
+                    string feedback;
+                    uint8_t index = 1;
+                    uint32_t delta(_precondition.Delta(_administrator.SubSystemInfo()));
+
+                    while (delta != 0) {
+                        if ((delta & 0x01) != 0) {
+                            if (feedback.empty() == false) {
+                                feedback += ',';
+                            }
+
+                            PluginHost::ISubSystem::subsystem element(static_cast<PluginHost::ISubSystem::subsystem>(index));
+                            feedback += string(Core::EnumerateType<PluginHost::ISubSystem::subsystem>(element).Data());
+                        }
+
+                        delta = (delta >> 1);
+                        index++;
+                    }
+
+                    Activity newData(_T("Delta preconditions: %s"), feedback.c_str());
+                    Messaging::TextMessage traceData(newData.Data());
+
+                    Core::Messaging::Information info(Core::Messaging::MetaData::MessageType::TRACING,
+                        Core::ClassNameOnly(typeid(Activity).name()).Text(),
+                        WPEFramework::Core::System::MODULE_NAME, __FILE__, __LINE__, Core::Time::Now().Ticks());
+
+                    Core::Messaging::MessageUnit::Instance().Push(info, &traceData);
+                }
+#else
                 if (Trace::TraceType<Activity, &Core::System::MODULE_NAME>::IsEnabled() == true) {
                     string feedback;
                     uint8_t index = 1;
@@ -361,11 +384,19 @@ namespace PluginHost
                     Trace::TraceType<Activity, &Core::System::MODULE_NAME> traceData(newData);
                     Trace::TraceUnit::Instance().Trace(__FILE__, __LINE__, className.c_str(), &traceData);
                 }
+#endif
+
             } else {
 
                 State(ACTIVATION);
 
                 Unlock();
+
+                // Before we dive into the "new" initialize lets see if this has a pending OOP running, if so forcefully kill it now, no time to wait !
+                if (_lastId != 0) {
+                    _administrator.Destroy(_lastId);
+                    _lastId = 0;
+                }
 
                 TRACE(Activity, (_T("Activation plugin [%s]:[%s]"), className.c_str(), callSign.c_str()));
 
@@ -504,11 +535,6 @@ namespace PluginHost
 
                 if (dispatcher != nullptr) {
                     dispatcher->Deactivate();
-                }
-
-                if (_connection != nullptr) {
-                    _connection->Release();
-                    _connection = nullptr;
                 }
             }
 
@@ -708,9 +734,7 @@ namespace PluginHost
         Close(0);
     }
 
-#ifdef __WINDOWS__
-#pragma warning(disable : 4355)
-#endif
+PUSH_WARNING(DISABLE_WARNING_THIS_IN_MEMBER_INITIALIZER_LIST)
 
     Server::Server(Config& configuration, const bool background)
         : _dispatcher(configuration.StackSize())
@@ -795,9 +819,7 @@ namespace PluginHost
 #endif
     }
 
-#ifdef __WINDOWS__
-#pragma warning(default : 4355)
-#endif
+POP_WARNING()
 
     Server::~Server()
     {

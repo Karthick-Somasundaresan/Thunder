@@ -44,6 +44,7 @@ namespace WPEFramework {
         template<typename CONTEXT>
         class ProxyType;
 
+PUSH_WARNING(DISABLE_WARNING_MULTPILE_INHERITENCE_OF_BASE_CLASS)
         template <typename CONTEXT>
         class ProxyObject final : public CONTEXT, public std::conditional<std::is_base_of<IReferenceCounted, CONTEXT>::value, Void, IReferenceCounted>::type {
         public:
@@ -307,6 +308,8 @@ namespace WPEFramework {
         protected:
             mutable std::atomic<uint32_t> _refCount;
         };
+POP_WARNING()
+
 
         // ------------------------------------------------------------------------------
         // Reference counted object can only exist on heap (if reference count reaches 0)
@@ -1613,9 +1616,18 @@ namespace WPEFramework {
             }
             // void action<const PROXYKEY& key, const Core::ProxyType<PROXYELEMENT>& element>
             template<typename ACTION>
+            void Visit(ACTION&& action) {
+                _lock.Lock();
+                for (std::pair<const PROXYKEY, ContainerStorage>& entry : _map) {
+                    action(entry.first, entry.second.first);
+                }
+                _lock.Unlock();
+            }
+            // void action<const PROXYKEY& key, const Core::ProxyType<PROXYELEMENT>& element>
+            template<typename ACTION>
             void Visit(ACTION&& action) const {
                 _lock.Lock();
-                for (auto entry : _map) {
+                for (const std::pair<const PROXYKEY, ContainerStorage>& entry : _map) {
                     action(entry.first, entry.second.first);
                 }
                 _lock.Unlock();
