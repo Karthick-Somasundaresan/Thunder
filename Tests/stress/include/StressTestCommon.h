@@ -22,6 +22,7 @@
 #include <ostream>
 #include <mutex>
 #include <time.h>
+#include "StressTestMacros.h"
 
 
 namespace WPEFramework {
@@ -68,6 +69,7 @@ struct HandleNotification {
 
 class TimeKeeper{
   public:
+    DELETE_COPIES(TimeKeeper);
     TimeKeeper(): _startTime(0), _endTime(0), _completed(false){}
 
     void Reset() {
@@ -91,14 +93,15 @@ class TimeKeeper{
         elapsedTime = difftime(_endTime, _startTime);
       } else if(_startTime > 0) {
         time_t now;
-	time(&now);
-	elapsedTime = difftime(now, _startTime);
+        time(&now);
+        elapsedTime = difftime(now, _startTime);
       } else {
         elapsedTime = -1.0;
       }
 
       return elapsedTime;
     }
+
     string GetElapsedTimeStr() {
       string elapsedTimeStr;
       int elapsedTime = GetElapsedTime();
@@ -162,9 +165,10 @@ inline string ExecutionStatusToString(ExecutionStatus status) {
 
 class AbstractTestInterface {
   public:
+    DELETE_COPIES(AbstractTestInterface);
     AbstractTestInterface() : _executionStatus(ExecutionStatus::NOTEXECUTED)
                     , _executionState(ExecutionState::NOTSTARTED)
-		    , _timeKeeper()
+                    , _timeKeeper()
                     , _lock(){
 
     }
@@ -246,6 +250,7 @@ class TestManager: public HandleNotification{
   private:
     class PerformTestThread: public Core::Thread {
       public:
+        DELETE_DEFAULT_AND_COPIES(PerformTestThread);
         PerformTestThread(TestManager* parent): Core::Thread(Core::Thread::DefaultStackSize(), _T("PerformTestThread")), _parent(parent) {
         }
         uint32_t Worker() {
@@ -257,21 +262,20 @@ class TestManager: public HandleNotification{
         TestManager* _parent;
     };
   private:
-    TestManager(): _listOfTests()
-                 , _executionCount(0)
-		 , _cs(0,1)
-		 , _cancelWait(true)
-		 , _performTestThread(this)
-		 , _cancelTest(false)
-		 , _timeKeeper()
-		 , _lock() {
+    TestManager() : _listOfTests()
+                  , _executionCount(0)
+                  , _cs(0,1)
+                  , _cancelWait(true)
+                  , _performTestThread(this)
+                  , _cancelTest(false)
+                  , _timeKeeper()
+                  , _lock() {
         _performTestThread.Block();
     }
     void WaitForCompletion();
   public:
-    TestManager(const TestManager&) = delete;
+    DELETE_COPIES(TestManager);
     ~TestManager();
-    TestManager& operator=(const TestManager&) = delete;
     static TestManager& Instance();
     void RegisterTest(AbstractTestInterface*);
     void UnRegisterTest(AbstractTestInterface*);
@@ -303,6 +307,7 @@ class CategoryTest : public AbstractTestInterface, public HandleNotification {
             TestManager::Instance().RegisterTest(this);
         }
     public:
+        DELETE_COPIES(CategoryTest);
         static CategoryTest& Instance() {
             static CategoryTest pct;
             return pct;
@@ -359,7 +364,6 @@ class ConfigReader {
         _file = path;
         ParseConfig();
       } else {
-        //std::cerr<<"STRESS_TEST_CONFIG_FILE not set. Setting all default values. Duration:"<<_duration<<" Freq: "<<_freq<<" ProxyCategory_MaxThreshold: "<<_proxyCategoryMaxThreshold << " ThreadPool_MaxJobThreshold: "<<_threadPoolMaxJobThreshold<<'\n';
         std::cerr<<"STRESS_TEST_CONFIG_FILE not set. Setting all default values."<<*this;
       }
     }
@@ -373,13 +377,13 @@ class ConfigReader {
     inline uint32_t ProxyCategoryMaxThreshold() const { return _proxyCategoryMaxThreshold;}
     inline uint32_t ThreadPoolMaxJobThreshold() const { return _threadPoolMaxJobThreshold;}
     friend std::ostream& operator<<(std::ostream& os, const ConfigReader& configReader) {
-    	os<<"\n********************************* Config Start ********************************\n"
-    	  <<"\t\tDuration: "<<configReader._duration<<"\n"
+      os<<"\n********************************* Config Start ********************************\n"
+        <<"\t\tDuration: "<<configReader._duration<<"\n"
           <<"\t\tFrequency: "<<configReader._freq<<"\n"
-	  <<"\t\tProxy Category Max Threshold: "<<configReader._proxyCategoryMaxThreshold<<"\n"
-	  <<"\t\tThreadPool Max Threshold: "<<configReader._threadPoolMaxJobThreshold<<"\n"
-    	  <<"********************************* Config End ********************************\n";
-	return os;
+    <<"\t\tProxy Category Max Threshold: "<<configReader._proxyCategoryMaxThreshold<<"\n"
+    <<"\t\tThreadPool Max Threshold: "<<configReader._threadPoolMaxJobThreshold<<"\n"
+        <<"********************************* Config End ********************************\n";
+  return os;
     }
   private:
     void ParseConfig() {

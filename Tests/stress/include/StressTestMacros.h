@@ -19,10 +19,13 @@
 
 #pragma once
 extern const char* group;
+
 #define BEGIN_GROUP(GroupName) \
-namespace { \
-  const char* group = GroupName;
-#define END_GROUP }
+namespace GroupName { \
+  const char* group = #GroupName; \
+
+#define END_GROUP \
+}
 #define VARIABLE_NAME_IMPL(x, y) x##y
 #define VARIABLE_NAME(ClassName, Number) VARIABLE_NAME_IMPL(ClassName, Number)
 #define LOAD_TEST(ClassName,...)\
@@ -33,3 +36,13 @@ StressTestExecutor<ClassName> VARIABLE_NAME(ClassName, __COUNTER__) (2,false,gro
 LoadTestExecutor<ClassName> VARIABLE_NAME(ClassName, __COUNTER__) (ThreadCount,true,group, ##__VA_ARGS__)
 #define STRESS_TEST_WITH_CUSTOM_THREADS(ThreadCount,ClassName,...)\
 StressTestExecutor<ClassName> VARIABLE_NAME(ClassName, __COUNTER__) (ThreadCount,true,group, ##__VA_ARGS__)
+
+#define DELETE_DEFAULT_AND_COPIES(ClassName)\
+ClassName() = delete;\
+ClassName(const ClassName&) = delete; \
+ClassName& operator=(const ClassName&) = delete;
+
+#define DELETE_COPIES(ClassName)\
+ClassName(const ClassName&) = delete; \
+ClassName& operator=(const ClassName&) = delete;
+

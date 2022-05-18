@@ -19,6 +19,8 @@
 
 #pragma once
 #include "StressTestCommon.h"
+#include "StressTestMacros.h"
+
 namespace WPEFramework{
 namespace StressTest
 {
@@ -28,6 +30,7 @@ struct ExecutorInterface {
   virtual void CancelExecution() = 0 ;
   virtual void AddListener(HandleNotification*) = 0;
   virtual string GetName() const = 0;
+  virtual ~ExecutorInterface() = default;
 };
 
 
@@ -42,6 +45,7 @@ class LoadGeneratorRegistry{
   private:
     class AbstractLoadGenerator : public LoadGeneratorInterface {
       public:
+        DELETE_DEFAULT_AND_COPIES(AbstractLoadGenerator);
         AbstractLoadGenerator(uint32_t duration, uint32_t freq, uint32_t threshold, uint32_t stepValue, string waveName): _duration(duration)
                                                                                                                         , _freq(freq)
                                                                                                                         , _maxThreshold(threshold)
@@ -60,13 +64,14 @@ class LoadGeneratorRegistry{
         uint32_t _duration;
         uint32_t _freq;
         uint32_t _maxThreshold;
-        // uint32_t _elapsedDuration;
         uint32_t _stepValue;
         string _waveName;
     };
 
     class TriangleLoadGenerator : public AbstractLoadGenerator {
       public:
+        TriangleLoadGenerator& operator=(const TriangleLoadGenerator&) = delete;
+        TriangleLoadGenerator(const TriangleLoadGenerator&) = delete;
         TriangleLoadGenerator(): AbstractLoadGenerator(ConfigReader::Instance().Duration()
                                                         , ConfigReader::Instance().Freq()
                                                         , ConfigReader::Instance().ProxyCategoryMaxThreshold()
@@ -85,6 +90,8 @@ class LoadGeneratorRegistry{
 
     class SineLoadGenerator : public AbstractLoadGenerator{
       public:
+        SineLoadGenerator& operator=(const SineLoadGenerator&) = delete;
+        SineLoadGenerator(const SineLoadGenerator&) = delete;
         SineLoadGenerator():AbstractLoadGenerator(ConfigReader::Instance().Duration()
                                                         , ConfigReader::Instance().Freq()
                                                         , ConfigReader::Instance().ProxyCategoryMaxThreshold()
@@ -118,6 +125,7 @@ class LoadGeneratorRegistry{
 
 class TestAdapter: public AbstractTestInterface, public HandleNotification {
   public:
+    DELETE_DEFAULT_AND_COPIES(TestAdapter);
     TestAdapter(StressTestInterface& testClass, ExecutorInterface* executor) : _testClass(testClass)
                                                       , _executor(executor)
                                                       , _listener(nullptr){
@@ -172,6 +180,7 @@ class LoadTestExecutor : public ExecutorInterface, public HandleNotification {
   private:
     class Action {
       public:
+        DELETE_DEFAULT_AND_COPIES(Action);
         Action(HandleNotification* listener, uint32_t id, uint64_t startTime) : _listener(listener)
                                                           , _id(id)
                                                           , _shaper(LoadGeneratorRegistry::GetLoadGenerator(id))
@@ -211,7 +220,7 @@ class LoadTestExecutor : public ExecutorInterface, public HandleNotification {
             _lastValue = currentValue;
           } else {
             _lastValue = 0;
-	    std::cout<<"Load Test Completed\n";
+            std::cout<<"Load Test Completed\n";
             _listener->HandleComplete();
           }
           return retVal;
@@ -227,6 +236,7 @@ class LoadTestExecutor : public ExecutorInterface, public HandleNotification {
           uint32_t _lastValue;
     };
   public:
+    DELETE_DEFAULT_AND_COPIES(LoadTestExecutor);
     template<typename... Args>
     LoadTestExecutor(uint32_t noOfThreads, bool customThreads, string category, Args&&... args): _noOfThreads(noOfThreads)
                                                           , _customThreads(customThreads)
@@ -308,14 +318,11 @@ class StressTestExecutor : public ExecutorInterface , public HandleNotification{
   private:
     class ActionThread : public Core::Thread {
       public:
-        ActionThread() = delete;
-        ActionThread(const ActionThread&) = delete;
-        ActionThread& operator=(const ActionThread&) = delete;
+        DELETE_DEFAULT_AND_COPIES(ActionThread);
         ActionThread(HandleNotification* listener, Direction direction, uint32_t duration): Core::Thread(Core::Thread::DefaultStackSize(), nullptr)
                                                                                           , _listener(listener)
                                                                                           , _direction(direction)
                                                                                           , _duration(duration){
-          // Suspend();
         }
         ~ActionThread() {
           Stop();
@@ -326,9 +333,9 @@ class StressTestExecutor : public ExecutorInterface , public HandleNotification{
 
           while(IsRunning() && Core::Time::Now() < expiryTime){
             _listener->HandleChange(_direction, 1);
-	    std::this_thread::yield();
+            std::this_thread::yield();
           }
-	  std::cout<<"Stress Test Complete\n";
+          std::cout<<"Stress Test Complete\n";
           _listener->HandleComplete();
           Block();
           return Core::infinite;
@@ -339,6 +346,7 @@ class StressTestExecutor : public ExecutorInterface , public HandleNotification{
         uint32_t _duration;
     };
   public:
+    DELETE_DEFAULT_AND_COPIES(StressTestExecutor);
     template<typename... Args>
     StressTestExecutor(uint32_t noOfThreads, bool customThreads, string category, Args&&... args) : _noOfThreads((noOfThreads % 2) ? noOfThreads + 1 : noOfThreads)
                                                                               , _customThreads(0)

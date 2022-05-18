@@ -41,7 +41,7 @@ void CategoryTest::HandleComplete() {
 
 void CategoryTest::WaitForCompletion() {
 
-    while(_executionCount > 0 ) { //TODO: Add condition for cancel test.
+    while(_executionCount > 0 ) { 
         if (_cs.Lock(wakeInterval) == Core::ERROR_NONE){
             _executionCount--;
         }
@@ -66,8 +66,8 @@ void CategoryTest::ExecuteTest() {
       _executionCount++;
       std::cerr<<"Starting Test: "<<(*test)->GetName()<<'\n';
       (*test)->ExecuteTest();
+      WaitForCompletion();
     }   
-    WaitForCompletion();
   }
   std::cerr<<"All Tests in Category Completed\n";
   SetExecutionState(ExecutionState::STOPPED);
