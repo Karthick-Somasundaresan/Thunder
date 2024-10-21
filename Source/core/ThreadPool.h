@@ -123,12 +123,12 @@ namespace Core {
             }
             IJob* Process(IDispatcher* dispatcher)
             {
-                syslog(LOG_NOTICE,"RDKTV-31859 Inside Process of MeasurableJob Process");
                 ASSERT(dispatcher != nullptr);
                 ASSERT(_job.IsValid());
                 ASSERT(_time != NumberType<uint64_t>::Max());
 
                 IDispatch* request = &(*_job);
+                TRACE_L5("RDKTV-31859 Inside Process of MeasurableJob req: %s", request->Identifier().c_str());
 
                 REPORT_OUTOFBOUNDS_WARNING(WarningReporting::JobTooLongWaitingInQueue, static_cast<uint32_t>((Time::Now().Ticks() - _time) / Time::TicksPerMillisecond));
                 REPORT_DURATION_WARNING({ dispatcher->Dispatch(request); }, WarningReporting::JobTooLongToFinish);

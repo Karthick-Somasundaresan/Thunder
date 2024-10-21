@@ -92,6 +92,7 @@ namespace Thunder {
 #
 #endif
 
+#undef CORE_TRACE_NOT_ALLOWED
 #if defined(CORE_TRACE_NOT_ALLOWED) && !defined(__WINDOWS__) 
 #define TRACE_FORMATTING(fmt, ...)                                                                            \
     _Pragma ("GCC warning \"Using 'TRACE_Lx' outside of Thunder Core is deprecated\"")                        \
