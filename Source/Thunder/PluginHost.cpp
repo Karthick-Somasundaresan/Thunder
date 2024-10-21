@@ -24,7 +24,6 @@
 #include <dlfcn.h> // for dladdr
 #include <syslog.h>
 #endif
-
 MODULE_NAME_DECLARATION(BUILD_REFERENCE)
 
 namespace Thunder {
@@ -514,6 +513,7 @@ POP_WARNING()
     int main(int argc, char** argv)
 #endif
     {
+        MYTRACE
 #ifndef __WINDOWS__
         //Set our Logging Mask and open the Log
         setlogmask(LOG_UPTO(LOG_NOTICE));
@@ -675,11 +675,15 @@ POP_WARNING()
 
             // Startup/load/initialize what we found in the configuration.
             _dispatcher = new PluginHost::Server(*_config, _background);
+            //MYLOG("dispatcher created");
+                syslog(LOG_NOTICE,"RDKTV-31859 dispatcher created");
 
             SYSLOG(Logging::Startup, (_T(EXPAND_AND_QUOTE(APPLICATION_NAME) " actively listening.")));
 
             // If we have handlers open up the gates to analyze...
             _dispatcher->Open();
+            //MYLOG("Dispatcher open");
+            syslog(LOG_NOTICE,"RDKTV-31859 PluginHost::Server opened");
 
             string id = GetDeviceId(_dispatcher);
             if (id.empty() == false) {
@@ -688,10 +692,15 @@ POP_WARNING()
 
 #ifndef __WINDOWS__
             if (_background == true) {
+                //MYLOG("Starting in background");
+            syslog(LOG_NOTICE,"RDKTV-31859 starting in background");
                 Core::WorkerPool::Instance().Join();
+            syslog(LOG_NOTICE,"RDKTV-31859 WorkerPool Job Joined");
             } else
 #endif
             {
+                //MYLOG("Starting in foreground");
+            syslog(LOG_NOTICE,"RDKTV-31859 starting in foreground");
                 char keyPress;
 
                 do {

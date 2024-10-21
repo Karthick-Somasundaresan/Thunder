@@ -591,6 +591,7 @@ namespace Thunder {
         uint32_t SocketPort::Close(const uint32_t waitTime)
         {
             // Make sure the state does not change in the mean time.
+            std::cout<<"RDKTV-31859 Socket Port Close\n";
             m_syncAdmin.Lock();
 
             bool closed = IsClosed();
@@ -993,6 +994,7 @@ namespace Thunder {
 #else
             uint32_t waiting = (time == Core::infinite ? 20000 : time);
 #endif
+            std::cout<<"RDKTV-31859 Inside WaitForClosure with time:"<<time<<"\n";
 
             // Right, a wait till connection is closed is requested..
             while ((waiting > 0) && (IsClosed() == false)) {
@@ -1004,6 +1006,7 @@ namespace Thunder {
                 m_syncAdmin.Unlock();
 
                 // Right, lets sleep in slices of <= SLEEPSLOT_POLLING_TIME ms
+                std::cout<<"RDKTV-31859 sleep slot time:"<<sleepSlot<<"\n";
                 SleepMs(sleepSlot);
 
                 m_syncAdmin.Lock();

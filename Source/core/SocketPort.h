@@ -44,6 +44,61 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #endif
+#if 1
+#include <time.h>
+#include <unistd.h>
+#include <sys/time.h>
+#include <sys/stat.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdarg.h>
+#include <pthread.h>
+//extern char* FILE_NAME;
+static void myLog(const char *format, ... )
+{
+    FILE* pFile;
+    const char * FILE_NAME = "/root/SocketPort.log";
+    char finalBuf[2048]= {0};
+    char buffer[1024] = {0};
+    char xbuffer[30]= {0};
+    struct timeval tv;
+    time_t curtime;
+    gettimeofday(&tv, NULL);
+    curtime=tv.tv_sec;
+    strftime(xbuffer,sizeof(xbuffer) - 1,"%m-%d-%Y %T.",localtime(&curtime));
+    va_list args;
+    va_start (args, format);
+    vsnprintf (buffer, sizeof(buffer) - 1, format, args);
+    va_end (args);
+    printf("Creating final buffer\n");
+    snprintf(finalBuf,sizeof(finalBuf),"%s%06ld [TID: %lu] %s\n",xbuffer,tv.tv_usec, pthread_self(), buffer);
+    int strl = strlen(finalBuf);
+    pFile = fopen(FILE_NAME, "a");
+    if(pFile)
+    {
+        printf("writing to afile\n");
+        fwrite (finalBuf, sizeof(char), strl, pFile);
+        fclose(pFile);
+    } else {
+        printf("Unable to write to afile\n");
+    }
+    printf("end of mylog\n");
+}
+#define DEBUG_ON
+#ifdef DEBUG_ON
+#define ENTER myLog("[%s:%d] Enter", __FUNCTION__, __LINE__);
+#define EXIT myLog("[%s:%d] Exit", __FUNCTION__, __LINE__);
+#define FAIL_EXIT myLog("[%s:%d] Failure Exit", __FUNCTION__, __LINE__);
+#define MYTRACE myLog("[%s:%d]", __FUNCTION__, __LINE__);
+#define MYLOG(X,...) myLog("[%s:%d] " X, __FUNCTION__, __LINE__, ##__VA_ARGS__);
+#else
+#define ENTER 
+#define EXIT 
+#define MYTRACE 
+#define MYLOG(X,...) 
+#endif
+#endif
 
 namespace Thunder {
     namespace Core {
@@ -323,6 +378,10 @@ namespace Thunder {
                 const uint16_t receiveBufferSize)
                 : SocketStream(rawSocket, localNode, remoteNode, sendBufferSize, receiveBufferSize, sendBufferSize, receiveBufferSize)
             {
+                std::cout<<"cout Inside SocketStream constructor 1\n";
+                //MYLOG("RDKTV-31859 Inside SocketStream constructor"); 
+                syslog(LOG_NOTICE,"RDKTV-31859 Inside SocketStream constructor");
+                std::cerr<<"cerr Inside SocketStream constructor 1\n";
             }
 
             SocketStream(const bool rawSocket,
@@ -334,6 +393,9 @@ namespace Thunder {
                 const uint32_t socketReceiveBufferSize)
                 : SocketPort((rawSocket ? SocketPort::RAW : SocketPort::STREAM), localNode, remoteNode, sendBufferSize, receiveBufferSize, socketSendBufferSize, socketReceiveBufferSize)
             {
+                std::cout<<"cout Inside SocketStream constructor 2\n";
+                MYLOG("RDKTV-31859 Inside SocketStream constructor 2"); 
+                std::cerr<<"cerr Inside SocketStream constructor 2\n";
             }
 
             SocketStream(const bool rawSocket,
@@ -343,6 +405,7 @@ namespace Thunder {
                 const uint16_t receiveBufferSize)
                 : SocketStream(rawSocket, connector, remoteNode, sendBufferSize, receiveBufferSize, sendBufferSize, receiveBufferSize)
             {
+                std::cout<<"cout Inside SocketStream constructor 3 remoteNode:"<<remoteNode.HostAddress()<<" \n";
             }
 
             SocketStream(const bool rawSocket,
@@ -354,9 +417,14 @@ namespace Thunder {
                 const uint32_t socketReceiveBufferSize)
                 : SocketPort((rawSocket ? SocketPort::RAW : SocketPort::STREAM), connector, remoteNode, sendBufferSize, receiveBufferSize, socketSendBufferSize, socketReceiveBufferSize)
             {
+                std::cout<<"cout Inside SocketStream constructor 4\n";
+                std::cerr<<"cerr Inside SocketStream constructor 4\n";
             }
 
-            ~SocketStream() override = default;
+            ~SocketStream() override {
+                std::cout<<"cout Inside SocketStream destructor\n";
+                std::cerr<<"cerr Inside SocketStream destructor\n";
+            }
         };
 
         class EXTERNAL SocketDatagram : public SocketPort {

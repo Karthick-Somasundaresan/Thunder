@@ -162,6 +162,7 @@ namespace PluginHost {
                 : Core::WorkerPool(THREADPOOL_COUNT, stackSize, 8 * THREADPOOL_COUNT, &_dispatch, this)
                 , _dispatch()
             {
+                syslog(LOG_NOTICE,"RDKTV-31859 PluginServer WorkerPoolImplementation");
                 Run();
             }
             ~WorkerPoolImplementation() override = default;

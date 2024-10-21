@@ -20,7 +20,7 @@ string(TOLOWER ${NAMESPACE} NAMESPACE_LIB)
 
 set(PORT 80 CACHE STRING "The port for the webinterface")
 set(BINDING "0.0.0.0" CACHE STRING "The binding interface")
-set(IDLE_TIME 180 CACHE STRING "Idle time")
+set(IDLE_TIME 0 CACHE STRING "Idle time")
 set(SOFT_KILL_CHECK_WAIT_TIME 10  CACHE STRING "Soft kill check waiting time")
 set(HARD_KILL_CHECK_WAIT_TIME 4  CACHE STRING "Hard kill check waiting time")
 set(PERSISTENT_PATH "${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/${NAMESPACE}" CACHE PATH "Persistent path")

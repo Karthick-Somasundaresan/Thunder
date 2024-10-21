@@ -123,6 +123,7 @@ namespace Core {
             }
             IJob* Process(IDispatcher* dispatcher)
             {
+                syslog(LOG_NOTICE,"RDKTV-31859 Inside Process of MeasurableJob Process");
                 ASSERT(dispatcher != nullptr);
                 ASSERT(_job.IsValid());
                 ASSERT(_time != NumberType<uint64_t>::Max());
@@ -423,6 +424,8 @@ POP_WARNING()
             }
             void Process()
             {
+                
+                syslog(LOG_NOTICE,"RDKTV-31859 Minion::Process ENTRY");
                 _dispatcher->Initialize();
 
                 while (_parent._queue.Extract(_currentRequest, infinite) == true) {
@@ -483,6 +486,8 @@ POP_WARNING()
                 }
 
                 _dispatcher->Deinitialize();
+
+                syslog(LOG_NOTICE,"RDKTV-31859 Minion::Process EXIT");
             }
 
         private:

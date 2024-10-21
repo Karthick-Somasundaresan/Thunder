@@ -20,11 +20,11 @@
 #ifndef __SOCKETSERVER_H
 #define __SOCKETSERVER_H
 
+#include <syslog.h>
 #include "Module.h"
 #include "Portability.h"
 #include "Proxy.h"
 #include "SocketPort.h"
-
 namespace Thunder {
 namespace Core {
     template <typename CLIENT>
@@ -148,6 +148,7 @@ namespace Core {
                 , _clients()
                 , _parent(*parent)
             {
+                syslog(LOG_NOTICE, "Inside SocketHandler");
 
                 ASSERT(parent != nullptr);
             }
@@ -258,6 +259,8 @@ namespace Core {
             }
             void Cleanup()
             {
+                std::cout<<"RDKTV-31859 Inside SocketHandler Cleanup\n";
+                syslog(LOG_NOTICE,"RDKTV-31859 Inside SocketHandler Cleanup"); 
                 _lock.Lock();
 
                 // Check if we can remove closed clients.
@@ -384,6 +387,8 @@ POP_WARNING()
         }
         inline void Cleanup()
         {
+            std::cout<<"RDKTV-31859 Inside SocketServerType Cleanup\n";
+                syslog(LOG_NOTICE,"RDKTV-31859 Inside SocketServer Cleanup"); 
             _handler.Cleanup();
         }
         inline Core::ProxyType<CLIENT> Client(const uint32_t ID)
