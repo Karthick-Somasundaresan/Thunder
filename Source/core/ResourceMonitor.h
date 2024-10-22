@@ -423,7 +423,7 @@ POP_WARNING()
 
                 uint16_t events;
                 if (entry != nullptr){
-                    syslog(LOG_NOTICE, "RDKTV-31859 checking events for Resource name: %s", typeid(resource).name());
+                    syslog(LOG_NOTICE, "RDKTV-31859 checking events for Resource name: %s", typeid(entry).name());
                 }
 
                 if ((entry == nullptr) || ((events = entry->Events()) == 0)) {
