@@ -1034,11 +1034,11 @@ namespace Thunder {
 
         uint16_t SocketPort::Events()
         {
-            syslog(LOG_NOTICE, "RDKTV-31859 Received events on Socket Port Current State: %d", State());
+            syslog(LOG_NOTICE, "RDKTV-31859 Received events on Socket Port(local:%s remote:%s) Current State: %d", LocalId().c_str(), RemoteId().c_str(), State());
             uint16_t result = 0;
 
             if (HasError() == true) {
-                syslog(LOG_NOTICE, "RDKTV-31859 SocketPort is in Exception State");
+                syslog(LOG_NOTICE, "RDKTV-31859 SocketPort (local:%s, remote:%s) is in Exception State", LocalId().c_str(), RemoteId().c_str());
                 // Socket is in exceptional state, hold off reads and writes, allow only HUP events.
                 // While HUP has meaning only for connection-oriented sockets, having it non-zero
                 // prevents the ResourceMonitor from unregistering the socket whatever type it is.
