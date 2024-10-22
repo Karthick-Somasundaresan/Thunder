@@ -1034,7 +1034,7 @@ namespace Thunder {
 
         uint16_t SocketPort::Events()
         {
-            syslog(LOG_NOTICE, "RDKTV-31859 Received events on Socket Port Current State: %d", m_State);
+            syslog(LOG_NOTICE, "RDKTV-31859 Received events on Socket Port Current State: %d", State());
             uint16_t result = 0;
 
             if (HasError() == true) {
@@ -1078,7 +1078,7 @@ namespace Thunder {
                     syslog(LOG_NOTICE, "RDKTV-31859 Port is either closing or closed");
                     result = 0;
                     m_State &= ~SocketPort::MONITOR;
-                    syslog(LOG_NOTICE, "RDKTV-31859 After removing Monitor from m_State: %04x", m_State);
+                    syslog(LOG_NOTICE, "RDKTV-31859 After removing Monitor from m_State: %04x", State());
                 }
                 else {
 
