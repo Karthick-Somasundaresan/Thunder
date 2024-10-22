@@ -360,7 +360,7 @@ namespace Thunder {
             , m_SystemdSocket(false)
         {
             TRACE_L5("Constructor SocketPort (NodeId&) <%p>", (this));
-            syslog(LOG_NOTICE,"RDKTV-31859 Constructor SocketPort (NodeId&) <%p>", (this));
+            // syslog(LOG_NOTICE,"RDKTV-31859 Constructor SocketPort (NodeId&) <%p>", (this));
             syslog(LOG_NOTICE,"RDKTV-31859 Constructor SocketPort (NodeId&)");
         }
 
