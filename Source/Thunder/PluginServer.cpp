@@ -1135,7 +1135,7 @@ namespace PluginHost {
     /* virtual */ Server::Channel::~Channel()
     {
         TRACE(Activity, (_T("Destruct a link with ID [%d] to [%s]"), Id(), RemoteId().c_str()));
-        syslog(LOG_NOTICE, "Destruct a link with ID: [%d] to [%s]", Id(), remoteId.QualifiedName().c_str());
+        syslog(LOG_NOTICE, "Destruct a link with ID");
 
         // If we are still atatched to a service, detach, we are out of scope...
         if (_service.IsValid() == true) {
