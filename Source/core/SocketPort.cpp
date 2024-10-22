@@ -1034,7 +1034,7 @@ namespace Thunder {
 
         uint16_t SocketPort::Events()
         {
-            syslog(LOG_NOTICE, "RDKTV-31859 Received events on Socket Port")
+            syslog(LOG_NOTICE, "RDKTV-31859 Received events on Socket Port");
             uint16_t result = 0;
 
             if (HasError() == true) {
