@@ -148,7 +148,7 @@ namespace Core {
                 , _clients()
                 , _parent(*parent)
             {
-                syslog(LOG_NOTICE, "Inside SocketHandler");
+                syslog(LOG_NOTICE, "RDKTV-31859 Inside SocketHandler");
 
                 ASSERT(parent != nullptr);
             }
@@ -161,9 +161,11 @@ namespace Core {
             {
 
                 ASSERT(parent != nullptr);
+                syslog(LOG_NOTICE, "RDKTV-31859 Inside SocketHandler ctor 2");
             }
             ~SocketHandler()
             {
+                syslog(LOG_NOTICE, "RDKTV-31859 Inside SocketHandler dtor");
                 SocketListner::Close(Core::infinite);
                 CloseClients(0);
 
@@ -364,14 +366,17 @@ PUSH_WARNING(DISABLE_WARNING_THIS_IN_MEMBER_INITIALIZER_LIST)
         SocketServerType()
             : _handler(this)
         {
+            syslog(LOG_NOTICE,"RDKTV-31859 Inside SocketServerType ctor 1"); 
         }
         SocketServerType(const NodeId& listeningNode)
             : _handler(listeningNode, this)
         {
+            syslog(LOG_NOTICE,"RDKTV-31859 Inside SocketServerType ctor 2"); 
         }
 POP_WARNING()
         ~SocketServerType()
         {
+            syslog(LOG_NOTICE,"RDKTV-31859 Inside SocketServerType dtor"); 
         }
 
     public:

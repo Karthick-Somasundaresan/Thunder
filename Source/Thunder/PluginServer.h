@@ -324,6 +324,7 @@ namespace PluginHost {
 
             SocketFlow(const Core::ProxyType<Core::JSON::IElement>& object)
             {
+                syslog(LOG_NOTICE, "RDKTV-31859 Inside SocketFlow ctor");
                 if (object.IsValid() == true) {
                     string text;
 
@@ -332,7 +333,9 @@ namespace PluginHost {
                     _text = Core::ToString(text);
                 }
             }
-            ~SocketFlow() = default;
+            ~SocketFlow() {
+                syslog(LOG_NOTICE, "RDKTV-31859 SocketFlow dtor");
+            }
 
         public:
             inline const char* Data() const
@@ -538,8 +541,11 @@ namespace PluginHost {
                     const Core::ProxyType<RPC::InvokeServer>& handler)
                     : RPC::Communicator(source, proxyStubPath, Core::ProxyType<Core::IIPCServer>(handler))
                     , _plugin(nullptr) {
+                        syslog(LOG_NOTICE, "RDKTV-31859 Inside impl of RPC:: Communicator ctor");
                 }
-                ~ExternalAccess() override = default;
+                ~ExternalAccess() override {
+                        syslog(LOG_NOTICE, "RDKTV-31859 Inside impl of RPC:: Communicator dtor");
+                }
 
             public:
                 void SetInterface(Core::IUnknown* plugin) {
@@ -828,9 +834,12 @@ namespace PluginHost {
                 , _composit(*this)
                 , _jobs(administrator)
             {
+                syslog(LOG_NOTICE, "RDKTV-31859 Inside Service ctor");
+
             }
             ~Service() override
             {
+                syslog(LOG_NOTICE, "RDKTV-31859 Inside Service dtor");
                 Deactivate(IShell::SHUTDOWN);
 
                 ASSERT(_handler == nullptr);
@@ -847,6 +856,7 @@ namespace PluginHost {
         public:
             static void Initialize()
             {
+                syslog(LOG_NOTICE, "RDKTV-31859 Inside Service Initialize");
                 _missingHandler->ErrorCode = Web::STATUS_SERVICE_UNAVAILABLE;
                 _missingHandler->Message = _T("The requested service is not loaded.");
 
@@ -4444,6 +4454,7 @@ namespace PluginHost {
             uint32_t Close(const uint32_t waitTime) {
                 _job.Revoke();
 
+                syslog(LOG_NOTICE,"RDKTV-31859 Close of Channel Map called");
                 // Start by closing the server thread..
                 // Kill all open connections, we are shutting down !!!
                 BaseClass::Close(waitTime);
@@ -4491,6 +4502,7 @@ namespace PluginHost {
             void Dispatch()
             {
                 TRACE(Activity, (string(_T("Cleanup job running..\n"))));
+                syslog(LOG_NOTICE, "RDKTV-31859 Cleanup job running");
 
                 // Next Clean all Id's from JSONRPC nolonger available
                 // 
@@ -4548,6 +4560,7 @@ namespace PluginHost {
         }
         inline void Cleanup()
         {
+            syslog(LOG_NOTICE,"RDKTV-31859 Calling _connections.Cleanup");
             return (_connections.Cleanup());
         }
         inline Core::ProxyType<Server::Channel> Connection(const uint32_t id)
