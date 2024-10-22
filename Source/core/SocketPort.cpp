@@ -328,7 +328,8 @@ namespace Thunder {
             const uint16_t nReceiveBufferSize)
             : SocketPort(socketType, refLocalNode, refRemoteNode, nSendBufferSize, nReceiveBufferSize, nSendBufferSize, nReceiveBufferSize)
         {
-            syslog(LOG_NOTICE,"RDKTV-31859 Constructor1 SocketPort remote: %s", refRemoteNode.QualifiedName());
+            // syslog(LOG_NOTICE,"RDKTV-31859 Constructor1 SocketPort remote: %s", refRemoteNode.QualifiedName().c_str());
+            syslog(LOG_NOTICE,"RDKTV-31859 Constructor1 SocketPort remote");
         }
 
         SocketPort::SocketPort(
@@ -360,6 +361,7 @@ namespace Thunder {
         {
             TRACE_L5("Constructor SocketPort (NodeId&) <%p>", (this));
             syslog(LOG_NOTICE,"RDKTV-31859 Constructor SocketPort (NodeId&) <%p>", (this));
+            syslog(LOG_NOTICE,"RDKTV-31859 Constructor SocketPort (NodeId&)");
         }
 
         SocketPort::SocketPort(
@@ -370,7 +372,8 @@ namespace Thunder {
             const uint16_t nReceiveBufferSize)
             : SocketPort(socketType, refConnector, remoteNode, nSendBufferSize, nReceiveBufferSize, nSendBufferSize, nReceiveBufferSize)
         {
-            syslog(LOG_NOTICE,"RDKTV-31859 Constructor3 SocketPort remote: %s", remoteNode.QualifiedName());
+            // syslog(LOG_NOTICE,"RDKTV-31859 Constructor3 SocketPort remote: %s", remoteNode.QualifiedName());
+            syslog(LOG_NOTICE,"RDKTV-31859 Constructor3 SocketPort remote");
         }
 
         SocketPort::SocketPort(
@@ -426,7 +429,7 @@ namespace Thunder {
         SocketPort::~SocketPort()
         {
             TRACE_L5("Destructor SocketPort <%p>", (this));
-            syslog(LOG_NOTICE,"RDKTV-31859 Destructor SocketPort <%p>", (this));
+            syslog(LOG_NOTICE,"RDKTV-31859 Destructor SocketPort ");
 
             // Make sure the socket is closed before you destruct. Otherwise
             // the virtuals might be called, which are destructed at this point !!!!
@@ -597,7 +600,7 @@ namespace Thunder {
         {
             // Make sure the state does not change in the mean time.
             std::cout<<"RDKTV-31859 Socket Port Close\n";
-            syslog("RDKTV-31859 Socket Port Close\n");
+            syslog(LOG_NOTICE,"RDKTV-31859 Socket Port Close\n");
             m_syncAdmin.Lock();
 
             bool closed = IsClosed();
@@ -1283,7 +1286,8 @@ namespace Thunder {
 
         bool SocketPort::Closed()
         {
-            syslog(LOG_NOTICE, "SocketPort: %s is closing", Identifier().c_str());
+            // syslog(LOG_NOTICE, "SocketPort: %s is closing", Identifier().c_str());
+            syslog(LOG_NOTICE, "SocketPort: is closing");
             bool result = true;
 
             ASSERT(m_Socket != INVALID_SOCKET);
