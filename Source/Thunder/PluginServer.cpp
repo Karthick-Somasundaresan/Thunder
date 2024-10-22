@@ -1129,13 +1129,13 @@ namespace PluginHost {
         , _jobs()
     {
         TRACE(Activity, (_T("Construct a link with ID: [%d] to [%s]"), Id(), remoteId.QualifiedName().c_str()));
-        syslog(LOG_NOTICE, "Construct a link with ID: [%d] to [%s]", Id(), remoteId.QualifiedName().c_str());
+        syslog(LOG_NOTICE, "RDKTV-31859 Construct a link with ID: [%d] to [%s]", Id(), remoteId.QualifiedName().c_str());
     }
 
     /* virtual */ Server::Channel::~Channel()
     {
         TRACE(Activity, (_T("Destruct a link with ID [%d] to [%s]"), Id(), RemoteId().c_str()));
-        syslog(LOG_NOTICE, "Destruct a link with ID");
+        syslog(LOG_NOTICE, "RDKTV-31859 Destruct a link with ID");
 
         // If we are still atatched to a service, detach, we are out of scope...
         if (_service.IsValid() == true) {
