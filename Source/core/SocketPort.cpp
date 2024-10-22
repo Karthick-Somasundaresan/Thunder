@@ -1034,7 +1034,7 @@ namespace Thunder {
 
         uint16_t SocketPort::Events()
         {
-            syslog(LOG_NOTICE, "RDKTV-31859 Received events on Socket Port");
+            syslog(LOG_NOTICE, "RDKTV-31859 Received events on Socket Port Current State: %d", m_State);
             uint16_t result = 0;
 
             if (HasError() == true) {
@@ -1049,6 +1049,7 @@ namespace Thunder {
 #endif
             }
             else if (m_State != 0) {
+                syslog(LOG_NOTICE, "RDKTV-31859 state !=0");
 #ifdef __WINDOWS__
                 result = FD_CLOSE;
 #else
@@ -1058,6 +1059,7 @@ namespace Thunder {
                 // It is the first time we are going to pick this one up..
                 if ((m_State & SocketPort::MONITOR) == 0) {
                     m_State |= SocketPort::MONITOR;
+                    syslog(LOG_NOTICE, "RDKTV-31859 Start add port to monitoring");
 
                     if ((m_State & (SocketPort::OPEN | SocketPort::ACCEPT)) == SocketPort::OPEN) {
                         Opened();
@@ -1073,8 +1075,10 @@ namespace Thunder {
                 }
 
                 if ((IsForcedClosing() == true) && (Closed() == true)) {
+                    syslog(LOG_NOTICE, "RDKTV-31859 Port is either closing or closed");
                     result = 0;
                     m_State &= ~SocketPort::MONITOR;
+                    syslog(LOG_NOTICE, "RDKTV-31859 After removing Monitor from m_State: %04x", m_State);
                 }
                 else {
 
@@ -1086,6 +1090,7 @@ namespace Thunder {
 #endif
                 }
             }
+            syslog(LOG_NOTICE, "RDKTV-31859 SocketPort events result: %04x", result);
 
             return (result);
         }
@@ -1121,6 +1126,7 @@ namespace Thunder {
 #else
                 if ((flagsSet & POLLHUP) != 0) {
                     TRACE_L3("HUP event received on socket %u", static_cast<uint32_t>(m_Socket));
+                    syslog(LOG_NOTICE, "HUP event received on socket %u", static_cast<uint32_t>(m_Socket));
                     Closed();
                 }
                 else if ((flagsSet & POLLRDHUP) != 0) {

@@ -276,6 +276,7 @@ namespace Thunder {
                             (*index)->Opened();
                         }
                         else {
+                            syslog(LOG_NOTICE, "RDKTV-31859 State Change event received in JSONRPCLink");
                             (*index)->Closed();
                         }
                         index++;
@@ -923,6 +924,7 @@ namespace Thunder {
             void Closed()
             {
                 // Abort any in progress RPC command:
+                syslog(LOG_NOTICE, "RDKTV-31859 Clearing any pending request while the link is getting closed");
                 _adminLock.Lock();
 
                 // See if we issued anything, if so abort it..
