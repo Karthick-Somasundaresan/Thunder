@@ -4323,9 +4323,11 @@ namespace PluginHost {
             void StateChange() override
             {
                 TRACE(Activity, (_T("State change on [%d] to [%s]"), Id(), (IsSuspended() ? _T("SUSPENDED") : (IsUpgrading() ? _T("UPGRADING") : (IsWebSocket() ? _T("WEBSOCKET") : _T("WEBSERVER"))))));
+                syslog(LOG_NOTICE, "RDKTV-31859 State change on [%d] to [%s]", Id(), (IsSuspended() ? "SUSPENDED" : (IsUpgrading() ? "UPGRADING" : (IsWebSocket() ? "WEBSOCKET" : "WEBSERVER"))));
 
                 // If we are closing (or closed) do the clean up
                 if (IsOpen() == false) {
+                    syslog(LOG_NOTICE, "RDKTV-31859 Channel is not Open");
                     if (_service.IsValid() == true) {
                         _service->Detach(*this);
 

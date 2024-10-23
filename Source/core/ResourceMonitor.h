@@ -482,6 +482,7 @@ POP_WARNING()
                         Arm();
 
                         // Event if the flagsSet == 0, call handle, maybe a break was issued by this RESOURCE..
+                        syslog(LOG_NOTICE, "RDKTV-31859 Calling Resource Handle");
                         entry->Handle(flagsSet);
 
                         Reset();

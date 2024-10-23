@@ -628,10 +628,12 @@ namespace Thunder {
 #ifdef __WINDOWS__
                         shutdown(m_Socket, SD_BOTH);
 #else
+                        syslog(LOG_NOTICE,"RDKTV-31859 shutting down the socket: %d", m_Socket);
                         shutdown(m_Socket, SHUT_RDWR);
 #endif
                     }
 
+                    syslog(LOG_NOTICE, "RDKTV-31859 calling Resource Monitor Break");
                     ResourceMonitor::Instance().Break();
                 } else {
                     TRACE_L3("Socket is already closed or being closed");
@@ -1131,6 +1133,7 @@ namespace Thunder {
                 }
                 else if ((flagsSet & POLLRDHUP) != 0) {
                     TRACE_L3("RDHUP event received on socket %u", static_cast<uint32_t>(m_Socket));
+                    syslog(LOG_NOTICE, "RDHUP event received on socket %u", static_cast<uint32_t>(m_Socket));
 
                     // The other side wants to shut down the connection. Let's do the same then.
                     // Once the connection is shut down in both directions, a HUP event will arrive.
@@ -1295,7 +1298,7 @@ namespace Thunder {
         bool SocketPort::Closed()
         {
             // syslog(LOG_NOTICE, "SocketPort: %s is closing", Identifier().c_str());
-            syslog(LOG_NOTICE, "SocketPort: is closing");
+            syslog(LOG_NOTICE, "RDKTV-31859 SocketPort: Closed called");
             bool result = true;
 
             ASSERT(m_Socket != INVALID_SOCKET);
@@ -1306,6 +1309,7 @@ namespace Thunder {
             // done on our request, or closed from the other side...
             m_State &= SHUTDOWN;
 
+            syslog(LOG_NOTICE, "RDKTV-31859 Calling stateChange");
             StateChange();
 
             m_State &= (~SHUTDOWN);

@@ -503,6 +503,7 @@ namespace Thunder {
                 }
                 void StateChange() override
                 {
+                    syslog(LOG_NOTICE, "RDKTV-31859 Calling Handler:SocketPort StateChange");
                     SOCKET newClient;
                     NodeId remoteId;
 

@@ -307,6 +307,7 @@ namespace Core {
 
                     while (index != _clients.end()) {
                         if (index->second->IsClosed() == true) {
+                            syslog(LOG_NOTICE, "RDKTV-31859 Removing closed clients");
                             index = _clients.erase(index);
                         }
                         else {
