@@ -128,7 +128,7 @@ namespace Core {
     void Thread::Signal(const int signal) const
     {
 #ifdef __LINUX__
-        syslog(LOG_NOTICE, "RDKTV-31859 Sending signal :%d to thread:%d", signal, m_hThreadInstance);
+        syslog(LOG_NOTICE, "RDKTV-31859 Sending signal :%ld to thread:%d", signal, m_hThreadInstance);
        ::pthread_kill(m_hThreadInstance, signal);
 #endif
     }
