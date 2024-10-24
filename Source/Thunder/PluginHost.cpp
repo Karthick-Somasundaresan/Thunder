@@ -677,7 +677,7 @@ POP_WARNING()
             _dispatcher = new PluginHost::Server(*_config, _background);
             //MYLOG("dispatcher created");
                 syslog(LOG_NOTICE,"RDKTV-31859 dispatcher created");
-                printf("RDKTV-31859 dispatcher created");
+                printf("RDKTV-31859 dispatcher created\n");
 
             SYSLOG(Logging::Startup, (_T(EXPAND_AND_QUOTE(APPLICATION_NAME) " actively listening.")));
 
@@ -685,7 +685,7 @@ POP_WARNING()
             _dispatcher->Open();
             //MYLOG("Dispatcher open");
             syslog(LOG_NOTICE,"RDKTV-31859 PluginHost::Server opened");
-            printf("RDKTV-31859 PluginHost::Server opened");
+            printf("RDKTV-31859 PluginHost::Server opened\n");
 
             string id = GetDeviceId(_dispatcher);
             if (id.empty() == false) {
@@ -696,16 +696,16 @@ POP_WARNING()
             if (_background == true) {
                 //MYLOG("Starting in background");
             syslog(LOG_NOTICE,"RDKTV-31859 starting in background");
-            printf("RDKTV-31859 starting in background");
+            printf("RDKTV-31859 starting in background\n");
                 Core::WorkerPool::Instance().Join();
             syslog(LOG_NOTICE,"RDKTV-31859 WorkerPool Job Joined");
-            printf("RDKTV-31859 WorkerPool Job Joined");
+            printf("RDKTV-31859 WorkerPool Job Joined\n");
             } else
 #endif
             {
                 //MYLOG("Starting in foreground");
             syslog(LOG_NOTICE,"RDKTV-31859 starting in foreground");
-            printf("RDKTV-31859 starting in foreground");
+            printf("RDKTV-31859 starting in foreground\n");
                 char keyPress;
 
                 do {

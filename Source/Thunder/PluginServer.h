@@ -545,11 +545,11 @@ namespace PluginHost {
                     : RPC::Communicator(source, proxyStubPath, Core::ProxyType<Core::IIPCServer>(handler))
                     , _plugin(nullptr) {
                         syslog(LOG_NOTICE, "RDKTV-31859 Inside impl of RPC:: Communicator ctor");
-                        printf("RDKTV-31859 Inside impl of RPC:: Communicator ctor");
+                        printf("RDKTV-31859 Inside impl of RPC:: Communicator ctor\n");
                 }
                 ~ExternalAccess() override {
                         syslog(LOG_NOTICE, "RDKTV-31859 Inside impl of RPC:: Communicator dtor");
-                        printf("RDKTV-31859 Inside impl of RPC:: Communicator dtor");
+                        printf("RDKTV-31859 Inside impl of RPC:: Communicator dtor\n");
                 }
 
             public:
@@ -840,13 +840,13 @@ namespace PluginHost {
                 , _jobs(administrator)
             {
                 syslog(LOG_NOTICE, "RDKTV-31859 Inside Service ctor");
-                printf("RDKTV-31859 Inside Service ctor");
+                printf("RDKTV-31859 Inside Service ctor\n");
 
             }
             ~Service() override
             {
                 syslog(LOG_NOTICE, "RDKTV-31859 Inside Service dtor");
-                printf("RDKTV-31859 Inside Service dtor");
+                printf("RDKTV-31859 Inside Service dtor\n");
                 Deactivate(IShell::SHUTDOWN);
 
                 ASSERT(_handler == nullptr);
@@ -864,7 +864,7 @@ namespace PluginHost {
             static void Initialize()
             {
                 syslog(LOG_NOTICE, "RDKTV-31859 Inside Service Initialize");
-                printf("RDKTV-31859 Inside Service Initialize");
+                printf("RDKTV-31859 Inside Service Initialize\n");
                 _missingHandler->ErrorCode = Web::STATUS_SERVICE_UNAVAILABLE;
                 _missingHandler->Message = _T("The requested service is not loaded.");
 
@@ -4332,12 +4332,12 @@ namespace PluginHost {
             {
                 TRACE(Activity, (_T("State change on [%d] to [%s]"), Id(), (IsSuspended() ? _T("SUSPENDED") : (IsUpgrading() ? _T("UPGRADING") : (IsWebSocket() ? _T("WEBSOCKET") : _T("WEBSERVER"))))));
                 syslog(LOG_NOTICE, "RDKTV-31859 State change on [%d] to [%s]", Id(), (IsSuspended() ? "SUSPENDED" : (IsUpgrading() ? "UPGRADING" : (IsWebSocket() ? "WEBSOCKET" : "WEBSERVER"))));
-                printf("RDKTV-31859 State change on [%d] to [%s]", Id(), (IsSuspended() ? "SUSPENDED" : (IsUpgrading() ? "UPGRADING" : (IsWebSocket() ? "WEBSOCKET" : "WEBSERVER"))));
+                printf("RDKTV-31859 State change on [%d] to [%s]\n", Id(), (IsSuspended() ? "SUSPENDED" : (IsUpgrading() ? "UPGRADING" : (IsWebSocket() ? "WEBSOCKET" : "WEBSERVER"))));
 
                 // If we are closing (or closed) do the clean up
                 if (IsOpen() == false) {
                     syslog(LOG_NOTICE, "RDKTV-31859 Channel is not Open");
-                    printf("RDKTV-31859 Channel is not Open");
+                    printf("RDKTV-31859 Channel is not Open\n");
                     if (_service.IsValid() == true) {
                         _service->Detach(*this);
 
@@ -4452,7 +4452,7 @@ namespace PluginHost {
                 , _job(*this)
             {
                 syslog(LOG_NOTICE, "RDKTV-31859 Creating ChannelMap");
-                printf("RDKTV-31859 Creating ChannelMap");
+                printf("RDKTV-31859 Creating ChannelMap\n");
             }
             POP_WARNING()
             ~ChannelMap() = default;
@@ -4469,7 +4469,7 @@ namespace PluginHost {
                 _job.Revoke();
 
                 syslog(LOG_NOTICE,"RDKTV-31859 Close of Channel Map called");
-                printf("RDKTV-31859 Close of Channel Map called");
+                printf("RDKTV-31859 Close of Channel Map called\n");
                 // Start by closing the server thread..
                 // Kill all open connections, we are shutting down !!!
                 BaseClass::Close(waitTime);
@@ -4518,7 +4518,7 @@ namespace PluginHost {
             {
                 TRACE(Activity, (string(_T("Cleanup job running..\n"))));
                 syslog(LOG_NOTICE, "RDKTV-31859 Cleanup job running");
-                printf("RDKTV-31859 Cleanup job running");
+                printf("RDKTV-31859 Cleanup job running\n");
 
                 // Next Clean all Id's from JSONRPC nolonger available
                 // 
@@ -4577,7 +4577,7 @@ namespace PluginHost {
         inline void Cleanup()
         {
             syslog(LOG_NOTICE,"RDKTV-31859 Calling _connections.Cleanup");
-            printf("RDKTV-31859 Calling _connections.Cleanup");
+            printf("RDKTV-31859 Calling _connections.Cleanup\n");
             return (_connections.Cleanup());
         }
         inline Core::ProxyType<Server::Channel> Connection(const uint32_t id)

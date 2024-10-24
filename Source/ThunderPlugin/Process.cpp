@@ -115,7 +115,7 @@ PUSH_WARNING(DISABLE_WARNING_THIS_IN_MEMBER_INITIALIZER_LIST)
             , _sink(*this)
         {
             syslog(LOG_NOTICE,"RDKTV-31859 Plugin WorkerPoolImplementation");
-            printf("RDKTV-31859 Plugin WorkerPoolImplementation");
+            printf("RDKTV-31859 Plugin WorkerPoolImplementation\n");
             Core::ServiceAdministrator::Instance().Callback(&_sink);
 
             if (threads > 1) {
@@ -128,7 +128,7 @@ POP_WARNING()
         {
             Core::ServiceAdministrator::Instance().Callback(nullptr);
             syslog(LOG_NOTICE,"RDKTV-31859 Plugin WorkerPoolImplementation destructor");
-            printf("RDKTV-31859 Plugin WorkerPoolImplementation destructor");
+            printf("RDKTV-31859 Plugin WorkerPoolImplementation destructor\n");
 
             // Disable the queue so the minions can stop, even if they are processing and waiting for work..
             Core::WorkerPool::Stop();
@@ -137,13 +137,13 @@ POP_WARNING()
         {
 
             syslog(LOG_NOTICE,"RDKTV-31859 Plugin WorkerPoolImplementation Run Started");
-            printf("RDKTV-31859 Plugin WorkerPoolImplementation Run Started");
+            printf("RDKTV-31859 Plugin WorkerPoolImplementation Run Started\n");
             Core::WorkerPool::Run();
             syslog(LOG_NOTICE,"RDKTV-31859 Plugin WorkerPoolImplementation WorkerPool Started called and about to call join");
-            printf("RDKTV-31859 Plugin WorkerPoolImplementation WorkerPool Started called and about to call join");
+            printf("RDKTV-31859 Plugin WorkerPoolImplementation WorkerPool Started called and about to call join\n");
             Core::WorkerPool::Join();
             syslog(LOG_NOTICE,"RDKTV-31859 Plugin WorkerPoolImplementation End of Run");
-            printf("RDKTV-31859 Plugin WorkerPoolImplementation End of Run");
+            printf("RDKTV-31859 Plugin WorkerPoolImplementation End of Run\n");
         }
         void Stop()
         {

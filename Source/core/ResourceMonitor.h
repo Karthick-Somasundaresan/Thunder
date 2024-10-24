@@ -393,7 +393,7 @@ POP_WARNING()
         uint32_t Worker()
         {
             syslog(LOG_NOTICE, "RDKTV-31859 Inside ResouceMonitorType Worker");
-            printf("RDKTV-31859 Inside ResouceMonitorType Worker");
+            printf("RDKTV-31859 Inside ResouceMonitorType Worker\n");
             uint32_t delay = 0;
 
             _monitorRuns++;
@@ -484,7 +484,7 @@ POP_WARNING()
 
                         // Event if the flagsSet == 0, call handle, maybe a break was issued by this RESOURCE..
                         syslog(LOG_NOTICE, "RDKTV-31859 Calling Resource Handle");
-                        printf("RDKTV-31859 Calling Resource Handle");
+                        printf("RDKTV-31859 Calling Resource Handle\n");
                         entry->Handle(flagsSet);
 
                         Reset();

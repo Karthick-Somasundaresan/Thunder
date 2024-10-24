@@ -282,7 +282,7 @@ namespace Thunder {
 
             TRACE_L3("Socket %u destroyed", static_cast<uint32_t>(socket));
             syslog(LOG_NOTICE,"RDKTV-31859 Socket %u destroyed", static_cast<uint32_t>(socket));
-            printf("RDKTV-31859 Socket %u destroyed", static_cast<uint32_t>(socket));
+            printf("RDKTV-31859 Socket %u destroyed\n", static_cast<uint32_t>(socket));
 
             socket = INVALID_SOCKET;
         }
@@ -331,7 +331,7 @@ namespace Thunder {
         {
             // syslog(LOG_NOTICE,"RDKTV-31859 Constructor1 SocketPort remote: %s", refRemoteNode.QualifiedName().c_str());
             syslog(LOG_NOTICE,"RDKTV-31859 Constructor1 SocketPort remote");
-            printf("RDKTV-31859 Constructor1 SocketPort remote");
+            printf("RDKTV-31859 Constructor1 SocketPort remote\n");
         }
 
         SocketPort::SocketPort(
@@ -364,7 +364,7 @@ namespace Thunder {
             TRACE_L5("Constructor SocketPort (NodeId&) <%p>", (this));
             // syslog(LOG_NOTICE,"RDKTV-31859 Constructor SocketPort (NodeId&) <%p>", (this));
             syslog(LOG_NOTICE,"RDKTV-31859 Constructor SocketPort (NodeId&)");
-            printf("RDKTV-31859 Constructor SocketPort (NodeId&)");
+            printf("RDKTV-31859 Constructor SocketPort (NodeId&)\n");
         }
 
         SocketPort::SocketPort(
@@ -377,7 +377,7 @@ namespace Thunder {
         {
             // syslog(LOG_NOTICE,"RDKTV-31859 Constructor3 SocketPort remote: %s", remoteNode.QualifiedName());
             syslog(LOG_NOTICE,"RDKTV-31859 Constructor3 SocketPort remote");
-            printf("RDKTV-31859 Constructor3 SocketPort remote");
+            printf("RDKTV-31859 Constructor3 SocketPort remote\n");
         }
 
         SocketPort::SocketPort(
@@ -434,7 +434,7 @@ namespace Thunder {
         {
             TRACE_L5("Destructor SocketPort <%p>", (this));
             syslog(LOG_NOTICE,"RDKTV-31859 Destructor SocketPort ");
-            printf("RDKTV-31859 Destructor SocketPort ");
+            printf("RDKTV-31859 Destructor SocketPort \n");
 
             // Make sure the socket is closed before you destruct. Otherwise
             // the virtuals might be called, which are destructed at this point !!!!
@@ -606,7 +606,7 @@ namespace Thunder {
             // Make sure the state does not change in the mean time.
             std::cout<<"RDKTV-31859 Socket Port Close\n";
             syslog(LOG_NOTICE,"RDKTV-31859 Socket Port Close\n");
-            printf("RDKTV-31859 Socket Port Close\n");
+            printf("RDKTV-31859 Socket Port Close\n\n");
             m_syncAdmin.Lock();
 
             bool closed = IsClosed();
@@ -635,13 +635,13 @@ namespace Thunder {
                         shutdown(m_Socket, SD_BOTH);
 #else
                         syslog(LOG_NOTICE,"RDKTV-31859 shutting down the socket: %d", m_Socket);
-                        printf("RDKTV-31859 shutting down the socket: %d", m_Socket);
+                        printf("RDKTV-31859 shutting down the socket: %d\n", m_Socket);
                         shutdown(m_Socket, SHUT_RDWR);
 #endif
                     }
 
                     syslog(LOG_NOTICE, "RDKTV-31859 calling Resource Monitor Break");
-                    printf("RDKTV-31859 calling Resource Monitor Break");
+                    printf("RDKTV-31859 calling Resource Monitor Break\n");
                     ResourceMonitor::Instance().Break();
                 } else {
                     TRACE_L3("Socket is already closed or being closed");
@@ -1045,12 +1045,12 @@ namespace Thunder {
         uint16_t SocketPort::Events()
         {
             syslog(LOG_NOTICE, "RDKTV-31859 Received events on Socket Port(type:%d local:%s remote:%s) Current State: %d",m_SocketType, LocalId().c_str(), RemoteId().c_str(), State());
-            printf("RDKTV-31859 Received events on Socket Port(type:%d local:%s remote:%s) Current State: %d",m_SocketType, LocalId().c_str(), RemoteId().c_str(), State());
+            printf("RDKTV-31859 Received events on Socket Port(type:%d local:%s remote:%s) Current State: %d\n",m_SocketType, LocalId().c_str(), RemoteId().c_str(), State());
             uint16_t result = 0;
 
             if (HasError() == true) {
                 syslog(LOG_NOTICE, "RDKTV-31859 SocketPort (local:%s, remote:%s) is in Exception State", LocalId().c_str(), RemoteId().c_str());
-                printf("RDKTV-31859 SocketPort (local:%s, remote:%s) is in Exception State", LocalId().c_str(), RemoteId().c_str());
+                printf("RDKTV-31859 SocketPort (local:%s, remote:%s) is in Exception State\n", LocalId().c_str(), RemoteId().c_str());
                 // Socket is in exceptional state, hold off reads and writes, allow only HUP events.
                 // While HUP has meaning only for connection-oriented sockets, having it non-zero
                 // prevents the ResourceMonitor from unregistering the socket whatever type it is.
@@ -1072,7 +1072,7 @@ namespace Thunder {
                 if ((m_State & SocketPort::MONITOR) == 0) {
                     m_State |= SocketPort::MONITOR;
                     syslog(LOG_NOTICE, "RDKTV-31859 Start add port to monitoring");
-                    printf("RDKTV-31859 Start add port to monitoring");
+                    printf("RDKTV-31859 Start add port to monitoring\n");
 
                     if ((m_State & (SocketPort::OPEN | SocketPort::ACCEPT)) == SocketPort::OPEN) {
                         Opened();
@@ -1089,11 +1089,11 @@ namespace Thunder {
 
                 if ((IsForcedClosing() == true) && (Closed() == true)) {
                     syslog(LOG_NOTICE, "RDKTV-31859 Port is either closing or closed");
-                    printf("RDKTV-31859 Port is either closing or closed");
+                    printf("RDKTV-31859 Port is either closing or closed\n");
                     result = 0;
                     m_State &= ~SocketPort::MONITOR;
                     syslog(LOG_NOTICE, "RDKTV-31859 After removing Monitor from m_State: %04x", State());
-                    printf("RDKTV-31859 After removing Monitor from m_State: %04x", State());
+                    printf("RDKTV-31859 After removing Monitor from m_State: %04x\n", State());
                 }
                 else {
 
@@ -1106,7 +1106,7 @@ namespace Thunder {
                 }
             }
             syslog(LOG_NOTICE, "RDKTV-31859 SocketPort events result: %04x", result);
-            printf("RDKTV-31859 SocketPort events result: %04x", result);
+            printf("RDKTV-31859 SocketPort events result: %04x\n", result);
 
             return (result);
         }
@@ -1143,13 +1143,13 @@ namespace Thunder {
                 if ((flagsSet & POLLHUP) != 0) {
                     TRACE_L3("HUP event received on socket %u", static_cast<uint32_t>(m_Socket));
                     syslog(LOG_NOTICE, "RDKTV-31859 HUP event received on socket %u", static_cast<uint32_t>(m_Socket));
-                    printf("RDKTV-31859 HUP event received on socket %u", static_cast<uint32_t>(m_Socket));
+                    printf("RDKTV-31859 HUP event received on socket %u\n", static_cast<uint32_t>(m_Socket));
                     Closed();
                 }
                 else if ((flagsSet & POLLRDHUP) != 0) {
                     TRACE_L3("RDHUP event received on socket %u", static_cast<uint32_t>(m_Socket));
                     syslog(LOG_NOTICE, "RDHUP event received on socket %u", static_cast<uint32_t>(m_Socket));
-                    printf("RDHUP event received on socket %u", static_cast<uint32_t>(m_Socket));
+                    printf("RDHUP event received on socket %u\n", static_cast<uint32_t>(m_Socket));
 
                     // The other side wants to shut down the connection. Let's do the same then.
                     // Once the connection is shut down in both directions, a HUP event will arrive.
@@ -1315,7 +1315,7 @@ namespace Thunder {
         {
             // syslog(LOG_NOTICE, "SocketPort: %s is closing", Identifier().c_str());
             syslog(LOG_NOTICE, "RDKTV-31859 SocketPort: Closed called");
-            printf("RDKTV-31859 SocketPort: Closed called");
+            printf("RDKTV-31859 SocketPort: Closed called\n");
             bool result = true;
 
             ASSERT(m_Socket != INVALID_SOCKET);
@@ -1327,7 +1327,7 @@ namespace Thunder {
             m_State &= SHUTDOWN;
 
             syslog(LOG_NOTICE, "RDKTV-31859 Calling stateChange");
-            printf("RDKTV-31859 Calling stateChange");
+            printf("RDKTV-31859 Calling stateChange\n");
             StateChange();
 
             m_State &= (~SHUTDOWN);
@@ -1337,7 +1337,7 @@ namespace Thunder {
             }
             else {
                 syslog(LOG_NOTICE, "RDKTV-31859 Destroying socket");
-                printf("RDKTV-31859 Destroying socket");
+                printf("RDKTV-31859 Destroying socket\n");
                 DestroySocket(m_Socket);
                 ResourceMonitor::Instance().Unregister(*this);
                 // Remove socket descriptor for UNIX domain datagram socket.
@@ -1410,7 +1410,7 @@ namespace Thunder {
 
             if (((result = Accept(newConnection)) != INVALID_SOCKET) && (SetNonBlocking(result) == true)) {
                 syslog(LOG_NOTICE, "RDKTV-31859 In Accept before replacing the old socket with new one");
-                printf("RDKTV-31859 In Accept before replacing the old socket with new one");
+                printf("RDKTV-31859 In Accept before replacing the old socket with new one\n");
                 DestroySocket(m_Socket);
 
                 m_Socket = result;

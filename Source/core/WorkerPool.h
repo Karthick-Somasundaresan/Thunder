@@ -381,7 +381,7 @@ POP_WARNING()
         void Join() override
         {
             syslog(LOG_NOTICE,"RDKTV-31859 WorkerPool::Join");
-            printf("RDKTV-31859 WorkerPool::Join");
+            printf("RDKTV-31859 WorkerPool::Join\n");
             _joined = Thread::ThreadId();
             _external.Process();
             _joined = 0;
