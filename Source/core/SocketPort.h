@@ -396,7 +396,7 @@ namespace Thunder {
             {
                 std::cout<<"cout Inside SocketStream constructor 2\n";
                 MYLOG("RDKTV-31859 Inside SocketStream constructor 2"); 
-                printf("RDKTV-31859 Inside SocketStream constructor 2"\n); 
+                printf("RDKTV-31859 Inside SocketStream constructor 2\n"); 
                 std::cerr<<"cerr Inside SocketStream constructor 2\n";
             }
 
