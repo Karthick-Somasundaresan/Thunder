@@ -1318,6 +1318,7 @@ namespace Thunder {
                 result = false;
             }
             else {
+                syslog(LOG_NOTICE, "RDKTV-31859 Destroying socket");
                 DestroySocket(m_Socket);
                 ResourceMonitor::Instance().Unregister(*this);
                 // Remove socket descriptor for UNIX domain datagram socket.
@@ -1389,6 +1390,7 @@ namespace Thunder {
             SOCKET result;
 
             if (((result = Accept(newConnection)) != INVALID_SOCKET) && (SetNonBlocking(result) == true)) {
+                syslog(LOG_NOTICE, "RDKTV-31859 In Accept before replacing the old socket with new one");
                 DestroySocket(m_Socket);
 
                 m_Socket = result;
@@ -1411,6 +1413,8 @@ namespace Thunder {
             ASSERT(m_Socket != INVALID_SOCKET);
 
             // Current socket can be destroyed
+            
+            syslog(LOG_NOTICE, "RDKTV-31859 Destroy old socket before creating new socket");
             DestroySocket(m_Socket);
 
             m_Socket = ConstructSocket(m_LocalNode, emptyString);

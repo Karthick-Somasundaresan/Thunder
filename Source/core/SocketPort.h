@@ -527,6 +527,7 @@ namespace Thunder {
                 SocketListner()
                 : _socket(*this)
             {
+                syslog(LOG_NOTICE, "RDKTV-31859 Inside SocketListener ctor1");
                 TRACE_L5("Constructor SocketListner <%p>", (this));
             }
 
@@ -534,12 +535,14 @@ namespace Thunder {
             SocketListner(const NodeId& refLocalNode)
                 : _socket(*this, refLocalNode)
             {
+                syslog(LOG_NOTICE, "RDKTV-31859 Inside SocketListener ctor2");
                 TRACE_L5("Constructor SocketListner <%p>", (this));
             }
             POP_WARNING()
 
                 virtual ~SocketListner()
             {
+                syslog(LOG_NOTICE, "RDKTV-31859 Inside SocketListener dtor");
                 TRACE_L5("Destructor SocketListner <%p>", (this));
 
                 _socket.Close(0);
