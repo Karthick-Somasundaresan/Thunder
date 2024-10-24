@@ -266,7 +266,7 @@ namespace Core {
             {
                 std::cout<<"RDKTV-31859 Inside SocketHandler Cleanup\n";
                 syslog(LOG_NOTICE,"RDKTV-31859 Inside SocketHandler Cleanup"); 
-                printf("RDKTV-31859 Inside SocketHandler Cleanup"\n); 
+                printf("RDKTV-31859 Inside SocketHandler Cleanup\n"); 
                 _lock.Lock();
 
                 // Check if we can remove closed clients.
@@ -377,19 +377,19 @@ PUSH_WARNING(DISABLE_WARNING_THIS_IN_MEMBER_INITIALIZER_LIST)
             : _handler(this)
         {
             syslog(LOG_NOTICE,"RDKTV-31859 Inside SocketServerType ctor 1"); 
-            printf("RDKTV-31859 Inside SocketServerType ctor 1"\n); 
+            printf("RDKTV-31859 Inside SocketServerType ctor 1\n"); 
         }
         SocketServerType(const NodeId& listeningNode)
             : _handler(listeningNode, this)
         {
             syslog(LOG_NOTICE,"RDKTV-31859 Inside SocketServerType ctor 2"); 
-            printf("RDKTV-31859 Inside SocketServerType ctor 2"\n); 
+            printf("RDKTV-31859 Inside SocketServerType ctor 2\n"); 
         }
 POP_WARNING()
         ~SocketServerType()
         {
             syslog(LOG_NOTICE,"RDKTV-31859 Inside SocketServerType dtor"); 
-            printf("RDKTV-31859 Inside SocketServerType dtor"\n); 
+            printf("RDKTV-31859 Inside SocketServerType dtor\n"); 
         }
 
     public:
@@ -407,7 +407,7 @@ POP_WARNING()
         {
             std::cout<<"RDKTV-31859 Inside SocketServerType Cleanup\n";
                 syslog(LOG_NOTICE,"RDKTV-31859 Inside SocketServer Cleanup"); 
-                printf("RDKTV-31859 Inside SocketServer Cleanup"\n); 
+                printf("RDKTV-31859 Inside SocketServer Cleanup\n"); 
             _handler.Cleanup();
         }
         inline Core::ProxyType<CLIENT> Client(const uint32_t ID)
