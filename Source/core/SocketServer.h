@@ -282,6 +282,7 @@ namespace Core {
                     // in the evaluatio of this socket state and thus in due time, the Server lock is *always* released.
                     if ((index->second->IsClosed() == true) || ((index->second->IsSuspended() == true) && (index->second->Close(0) == Core::ERROR_NONE))) {
                         // Step forward but remember where we were and delete that one....
+                        syslog(LOG_NOTICE, "RDKTV-31859 removing channel from the map");
                         index = _clients.erase(index);
                     }
                     else {
@@ -293,6 +294,7 @@ namespace Core {
             }
             virtual void Accept(SOCKET& newClient, const NodeId& remoteId)
             {
+                syslog(LOG_NOTICE, "RDKTV-31859 Creating a new channel");
                 ProxyType<HANDLECLIENT> client = ProxyType<HANDLECLIENT>::Create(newClient, remoteId, &_parent);
 
                 ASSERT(client.IsValid() == true);

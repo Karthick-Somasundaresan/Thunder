@@ -422,9 +422,9 @@ POP_WARNING()
                 RESOURCE* entry = (*index);
 
                 uint16_t events;
-                if (entry != nullptr){
-                    syslog(LOG_NOTICE, "RDKTV-31859 checking events for Resource name: %s", typeid(entry).name());
-                }
+                // if (entry != nullptr){
+                //     syslog(LOG_NOTICE, "RDKTV-31859 checking events for Resource name: %s", typeid(entry).name());
+                // }
 
                 if ((entry == nullptr) || ((events = entry->Events()) == 0)) {
                     index = _resources.erase(index);

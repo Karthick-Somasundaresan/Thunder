@@ -1036,7 +1036,7 @@ namespace Thunder {
 
         uint16_t SocketPort::Events()
         {
-            syslog(LOG_NOTICE, "RDKTV-31859 Received events on Socket Port(local:%s remote:%s) Current State: %d", LocalId().c_str(), RemoteId().c_str(), State());
+            syslog(LOG_NOTICE, "RDKTV-31859 Received events on Socket Port(type:%d local:%s remote:%s) Current State: %d",m_SocketType, LocalId().c_str(), RemoteId().c_str(), State());
             uint16_t result = 0;
 
             if (HasError() == true) {
@@ -1051,7 +1051,7 @@ namespace Thunder {
 #endif
             }
             else if (m_State != 0) {
-                syslog(LOG_NOTICE, "RDKTV-31859 state !=0");
+                // syslog(LOG_NOTICE, "RDKTV-31859 state !=0");
 #ifdef __WINDOWS__
                 result = FD_CLOSE;
 #else

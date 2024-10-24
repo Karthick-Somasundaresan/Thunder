@@ -4441,6 +4441,7 @@ namespace PluginHost {
                 , _connectionCheckTimer(0)
                 , _job(*this)
             {
+                syslog(LOG_NOTICE, "RDKTV-31859 Creating ChannelMap");
             }
             POP_WARNING()
             ~ChannelMap() = default;

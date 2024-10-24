@@ -418,11 +418,13 @@ namespace Thunder {
                 : SocketPort((rawSocket ? SocketPort::RAW : SocketPort::STREAM), connector, remoteNode, sendBufferSize, receiveBufferSize, socketSendBufferSize, socketReceiveBufferSize)
             {
                 std::cout<<"cout Inside SocketStream constructor 4\n";
+                syslog(LOG_NOTICE,"Inside SocketStream constructor 4\n");
                 std::cerr<<"cerr Inside SocketStream constructor 4\n";
             }
 
             ~SocketStream() override {
                 std::cout<<"cout Inside SocketStream destructor\n";
+                syslog(LOG_NOTICE, "Inside SocketStream destructor")
                 std::cerr<<"cerr Inside SocketStream destructor\n";
             }
         };
