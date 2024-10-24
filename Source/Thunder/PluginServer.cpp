@@ -1130,12 +1130,14 @@ namespace PluginHost {
     {
         TRACE(Activity, (_T("Construct a link with ID: [%d] to [%s]"), Id(), remoteId.QualifiedName().c_str()));
         syslog(LOG_NOTICE, "RDKTV-31859 Construct a link with ID: [%d] to [%s]", Id(), remoteId.QualifiedName().c_str());
+        printf("RDKTV-31859 Construct a link with ID: [%d] to [%s]", Id(), remoteId.QualifiedName().c_str());
     }
 
     /* virtual */ Server::Channel::~Channel()
     {
         TRACE(Activity, (_T("Destruct a link with ID [%d] to [%s]"), Id(), RemoteId().c_str()));
         syslog(LOG_NOTICE, "RDKTV-31859 Destruct channel a link with ID");
+        printf("RDKTV-31859 Destruct channel a link with ID");
 
         // If we are still atatched to a service, detach, we are out of scope...
         if (_service.IsValid() == true) {
@@ -1226,6 +1228,7 @@ namespace PluginHost {
 
         // Initialize static message.
         syslog(LOG_NOTICE,"RDKTV-31859 Service Initialize in PluginServer");
+        printf("RDKTV-31859 Service Initialize in PluginServer");
         Service::Initialize();
         Channel::Initialize(_config.WebPrefix());
 
@@ -1317,6 +1320,7 @@ namespace PluginHost {
 
         _services.Startup();
         syslog(LOG_NOTICE,"RDKTV-31859 PluginHost::Server opened");
+        printf("RDKTV-31859 PluginHost::Server opened");
     }
 
     void Server::Close()
@@ -1324,6 +1328,7 @@ namespace PluginHost {
         Plugin::Controller* destructor(_controller->ClassType<Plugin::Controller>());
         destructor->AddRef();
         syslog(LOG_NOTICE,"RDKTV-31859 PluginHost::Server Close Called");
+        printf("RDKTV-31859 PluginHost::Server Close Called");
         _connections.Close(100);
         destructor->Stopped();
         _services.Close();

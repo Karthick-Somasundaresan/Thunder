@@ -426,6 +426,7 @@ POP_WARNING()
             {
                 
                 syslog(LOG_NOTICE,"RDKTV-31859 Minion::Process ENTRY");
+                printf("RDKTV-31859 Minion::Process ENTRY");
                 _dispatcher->Initialize();
 
                 while (_parent._queue.Extract(_currentRequest, infinite) == true) {
@@ -488,6 +489,7 @@ POP_WARNING()
                 _dispatcher->Deinitialize();
 
                 syslog(LOG_NOTICE,"RDKTV-31859 Minion::Process EXIT");
+                printf("RDKTV-31859 Minion::Process EXIT");
             }
 
         private:

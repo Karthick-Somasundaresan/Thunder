@@ -115,6 +115,7 @@ PUSH_WARNING(DISABLE_WARNING_THIS_IN_MEMBER_INITIALIZER_LIST)
             , _sink(*this)
         {
             syslog(LOG_NOTICE,"RDKTV-31859 Plugin WorkerPoolImplementation");
+            printf("RDKTV-31859 Plugin WorkerPoolImplementation");
             Core::ServiceAdministrator::Instance().Callback(&_sink);
 
             if (threads > 1) {
@@ -127,6 +128,7 @@ POP_WARNING()
         {
             Core::ServiceAdministrator::Instance().Callback(nullptr);
             syslog(LOG_NOTICE,"RDKTV-31859 Plugin WorkerPoolImplementation destructor");
+            printf("RDKTV-31859 Plugin WorkerPoolImplementation destructor");
 
             // Disable the queue so the minions can stop, even if they are processing and waiting for work..
             Core::WorkerPool::Stop();
@@ -135,10 +137,13 @@ POP_WARNING()
         {
 
             syslog(LOG_NOTICE,"RDKTV-31859 Plugin WorkerPoolImplementation Run Started");
+            printf("RDKTV-31859 Plugin WorkerPoolImplementation Run Started");
             Core::WorkerPool::Run();
             syslog(LOG_NOTICE,"RDKTV-31859 Plugin WorkerPoolImplementation WorkerPool Started called and about to call join");
+            printf("RDKTV-31859 Plugin WorkerPoolImplementation WorkerPool Started called and about to call join");
             Core::WorkerPool::Join();
             syslog(LOG_NOTICE,"RDKTV-31859 Plugin WorkerPoolImplementation End of Run");
+            printf("RDKTV-31859 Plugin WorkerPoolImplementation End of Run");
         }
         void Stop()
         {
@@ -641,6 +646,8 @@ int main(int argc, char** argv)
         TRACE_L1("Opening a message file with ID: [%d].", options.Exchange);
         syslog(LOG_NOTICE,"RDKTV-31859\
                 Opening a message file with ID: [%d].", options.Exchange);
+        printf("RDKTV-31859\
+                Opening a message file with ID: [%d].", options.Exchange);
 
         // Due to the LXC container support all ID's get mapped. For the MessageBuffer, use the host given ID.
         Messaging::MessageUnit::Instance().Open(options.Exchange);
@@ -667,6 +674,8 @@ int main(int argc, char** argv)
             // Register an interface to handle incoming requests for interfaces.
             if ((base = Process::AcquireInterfaces(options)) != nullptr) {
 
+            printf("RDKTV-31859\
+                All right time to start running");
             syslog(LOG_NOTICE,"RDKTV-31859\
                 All right time to start running");
                 TRACE_L1("Allright time to start running");

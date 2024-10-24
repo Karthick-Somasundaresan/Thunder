@@ -160,6 +160,7 @@ namespace Thunder {
                     virtual void StateChange() override
                     {
                         syslog(LOG_NOTICE, "RDKTV-31859 Inside StateChange of ChannelImpl");
+                        printf("RDKTV-31859 Inside StateChange of ChannelImpl");
                         _parent.StateChange();
                     }
                     virtual bool IsIdle() const
@@ -271,6 +272,7 @@ namespace Thunder {
                 void StateChange()
                 {
                     syslog(LOG_NOTICE, "RDKTV-31859 Calling StateChange in Communication Channel");
+                    printf("RDKTV-31859 Calling StateChange in Communication Channel");
                     _adminLock.Lock();
                     typename std::list<LinkType<INTERFACE>* >::iterator index(_observers.begin());
                     while (index != _observers.end()) {
@@ -279,6 +281,7 @@ namespace Thunder {
                         }
                         else {
                             syslog(LOG_NOTICE, "RDKTV-31859 State Change event received in JSONRPCLink");
+                            printf("RDKTV-31859 State Change event received in JSONRPCLink");
                             (*index)->Closed();
                         }
                         index++;
@@ -927,6 +930,7 @@ namespace Thunder {
             {
                 // Abort any in progress RPC command:
                 syslog(LOG_NOTICE, "RDKTV-31859 Clearing any pending request while the link is getting closed");
+                printf("RDKTV-31859 Clearing any pending request while the link is getting closed");
                 _adminLock.Lock();
 
                 // See if we issued anything, if so abort it..

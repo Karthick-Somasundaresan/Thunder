@@ -381,6 +381,7 @@ namespace Thunder {
                 std::cout<<"cout Inside SocketStream constructor 1\n";
                 //MYLOG("RDKTV-31859 Inside SocketStream constructor"); 
                 syslog(LOG_NOTICE,"RDKTV-31859 Inside SocketStream constructor");
+                printf("RDKTV-31859 Inside SocketStream constructor");
                 std::cerr<<"cerr Inside SocketStream constructor 1\n";
             }
 
@@ -395,6 +396,7 @@ namespace Thunder {
             {
                 std::cout<<"cout Inside SocketStream constructor 2\n";
                 MYLOG("RDKTV-31859 Inside SocketStream constructor 2"); 
+                printf("RDKTV-31859 Inside SocketStream constructor 2"); 
                 std::cerr<<"cerr Inside SocketStream constructor 2\n";
             }
 
@@ -502,6 +504,7 @@ namespace Thunder {
                 void StateChange() override
                 {
                     syslog(LOG_NOTICE, "RDKTV-31859 Calling Handler:SocketPort StateChange");
+                    printf("RDKTV-31859 Calling Handler:SocketPort StateChange");
                     SOCKET newClient;
                     NodeId remoteId;
 
@@ -528,6 +531,7 @@ namespace Thunder {
                 : _socket(*this)
             {
                 syslog(LOG_NOTICE, "RDKTV-31859 Inside SocketListener ctor1");
+                printf("RDKTV-31859 Inside SocketListener ctor1");
                 TRACE_L5("Constructor SocketListner <%p>", (this));
             }
 
@@ -536,6 +540,7 @@ namespace Thunder {
                 : _socket(*this, refLocalNode)
             {
                 syslog(LOG_NOTICE, "RDKTV-31859 Inside SocketListener ctor2");
+                printf("RDKTV-31859 Inside SocketListener ctor2");
                 TRACE_L5("Constructor SocketListner <%p>", (this));
             }
             POP_WARNING()
@@ -543,6 +548,7 @@ namespace Thunder {
                 virtual ~SocketListner()
             {
                 syslog(LOG_NOTICE, "RDKTV-31859 Inside SocketListener dtor");
+                printf("RDKTV-31859 Inside SocketListener dtor");
                 TRACE_L5("Destructor SocketListner <%p>", (this));
 
                 _socket.Close(0);
