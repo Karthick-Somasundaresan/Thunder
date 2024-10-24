@@ -1017,7 +1017,7 @@ namespace Thunder {
                 m_syncAdmin.Unlock();
 
                 // Right, lets sleep in slices of <= SLEEPSLOT_POLLING_TIME ms
-                std::cout<<"RDKTV-31859 sleep slot time:"<<sleepSlot<<"\n";
+                // std::cout<<"RDKTV-31859 sleep slot time:"<<sleepSlot<<"\n";
                 SleepMs(sleepSlot);
 
                 m_syncAdmin.Lock();
