@@ -1128,7 +1128,7 @@ namespace Thunder {
 #else
                 if ((flagsSet & POLLHUP) != 0) {
                     TRACE_L3("HUP event received on socket %u", static_cast<uint32_t>(m_Socket));
-                    syslog(LOG_NOTICE, "HUP event received on socket %u", static_cast<uint32_t>(m_Socket));
+                    syslog(LOG_NOTICE, "RDKTV-31859 HUP event received on socket %u", static_cast<uint32_t>(m_Socket));
                     Closed();
                 }
                 else if ((flagsSet & POLLRDHUP) != 0) {

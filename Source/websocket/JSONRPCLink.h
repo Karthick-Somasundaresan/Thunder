@@ -159,6 +159,7 @@ namespace Thunder {
                     }
                     virtual void StateChange() override
                     {
+                        syslog(LOG_NOTICE, "RDKTV-31859 Inside StateChange of ChannelImpl");
                         _parent.StateChange();
                     }
                     virtual bool IsIdle() const
@@ -269,6 +270,7 @@ namespace Thunder {
             protected:
                 void StateChange()
                 {
+                    syslog(LOG_NOTICE, "RDKTV-31859 Calling StateChange in Communication Channel");
                     _adminLock.Lock();
                     typename std::list<LinkType<INTERFACE>* >::iterator index(_observers.begin());
                     while (index != _observers.end()) {

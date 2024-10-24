@@ -141,6 +141,8 @@ namespace Web {
             // Notification of a channel state change..
             void StateChange() override
             {
+
+                syslog(LOG_NOTICE, "RDKTV-31859 Calling StateChange in Channel:WebLinkType");
                 if (BaseClass::IsOpen() == true) {
                     ASSERT(_request->IsValid() == true);
 

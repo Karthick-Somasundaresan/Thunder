@@ -673,6 +673,7 @@ POP_WARNING()
             // Signal a state change, Opened, Closed, Accepted or Error
             void StateChange() override
             {
+                syslog(LOG_NOTICE, "RDKTV-31859 Calling StateChange in HandlerType in WebSocketLinkType");
                 _adminLock.Lock();
 
                 // If the connection is closed by peer 'during' socket write, cleanup response message
@@ -1154,6 +1155,7 @@ POP_WARNING()
             // Signal a state change, Opened, Closed or Accepted
             void StateChange() override
             {
+                syslog(LOG_NOTICE,"RDKTV-31859 StateChange of Handler of WebSocketClientType");
                 _parent.StateChange();
 
                 if ((BaseClass::IsOpen() == true) && (BaseClass::IsWebSocket() == false)) {
@@ -1323,6 +1325,7 @@ POP_WARNING()
             // Signal a state change, Opened, Closed or Accepted
             void StateChange() override
             {
+                syslog(LOG_NOTICE, "RDKTV-31859 StateChange of Handler");
                 _parent.StateChange();
             }
             void Received(Core::ProxyType<Web::Request>& text) override
