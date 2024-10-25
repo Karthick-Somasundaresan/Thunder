@@ -1165,6 +1165,7 @@ namespace PluginHost {
         , _controller()
         , _factoriesImplementation()
     {
+        printf("RDKTV-31859 Inside Plugin Server Constructor");
         IFactories::Assign(&_factoriesImplementation);
 
         // See if the persitent path for our-selves exist, if not we will create it :-)

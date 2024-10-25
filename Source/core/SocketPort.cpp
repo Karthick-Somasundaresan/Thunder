@@ -1044,8 +1044,8 @@ namespace Thunder {
 
         uint16_t SocketPort::Events()
         {
-            syslog(LOG_NOTICE, "RDKTV-31859 Received events on Socket Port(type:%d local:%s remote:%s) Current State: %d",m_SocketType, LocalId().c_str(), RemoteId().c_str(), State());
-            printf("RDKTV-31859 Received events on Socket Port(type:%d local:%s remote:%s) Current State: %d\n",m_SocketType, LocalId().c_str(), RemoteId().c_str(), State());
+            syslog(LOG_NOTICE, "RDKTV-31859 Received events on Socket Port(type:%d local:%s remote:%s) Current State: %04x",m_SocketType, LocalId().c_str(), RemoteId().c_str(), State());
+            printf("RDKTV-31859 Received events on Socket Port(type:%d local:%s remote:%s) Current State: %04x\n",m_SocketType, LocalId().c_str(), RemoteId().c_str(), State());
             uint16_t result = 0;
 
             if (HasError() == true) {
