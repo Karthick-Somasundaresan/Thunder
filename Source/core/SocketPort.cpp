@@ -330,8 +330,8 @@ namespace Thunder {
             : SocketPort(socketType, refLocalNode, refRemoteNode, nSendBufferSize, nReceiveBufferSize, nSendBufferSize, nReceiveBufferSize)
         {
             // syslog(LOG_NOTICE,"RDKTV-31859 Constructor1 SocketPort remote: %s", refRemoteNode.QualifiedName().c_str());
-            syslog(LOG_NOTICE,"RDKTV-31859 Constructor1 SocketPort remote");
-            printf("RDKTV-31859 Constructor1 SocketPort remote\n");
+            // syslog(LOG_NOTICE,"RDKTV-31859 Constructor1 SocketPort remote");
+            // printf("RDKTV-31859 Constructor1 SocketPort remote\n");
         }
 
         SocketPort::SocketPort(
@@ -363,8 +363,8 @@ namespace Thunder {
         {
             TRACE_L5("Constructor SocketPort (NodeId&) <%p>", (this));
             // syslog(LOG_NOTICE,"RDKTV-31859 Constructor SocketPort (NodeId&) <%p>", (this));
-            syslog(LOG_NOTICE,"RDKTV-31859 Constructor SocketPort (NodeId&)");
-            printf("RDKTV-31859 Constructor SocketPort (NodeId&)\n");
+            // syslog(LOG_NOTICE,"RDKTV-31859 Constructor SocketPort (NodeId&) qualifiedId:  localId: %s remoteId: %s type:%04x",  LocalId().c_str(), RemoteId().c_str(), m_SocketType);
+            // printf("RDKTV-31859 Constructor SocketPort (NodeId&) qualifiedId:  localId: %s remoteId: %s type:%04x",  LocalId().c_str(), RemoteId().c_str(), m_SocketType);
         }
 
         SocketPort::SocketPort(
@@ -376,8 +376,9 @@ namespace Thunder {
             : SocketPort(socketType, refConnector, remoteNode, nSendBufferSize, nReceiveBufferSize, nSendBufferSize, nReceiveBufferSize)
         {
             // syslog(LOG_NOTICE,"RDKTV-31859 Constructor3 SocketPort remote: %s", remoteNode.QualifiedName());
-            syslog(LOG_NOTICE,"RDKTV-31859 Constructor3 SocketPort remote");
-            printf("RDKTV-31859 Constructor3 SocketPort remote\n");
+            // syslog(LOG_NOTICE,"RDKTV-31859 Constructor3 SocketPort remote");
+            // printf("RDKTV-31859 Constructor3 SocketPort remote\n");
+            // syslog(LOG_NOTICE,"RDKTV-31859 Constructor SocketPort (NodeId&) qualifiedId:  localId: %s remoteId: %s type:%04x",  LocalId().c_str(), RemoteId().c_str(), m_SocketType);
         }
 
         SocketPort::SocketPort(
@@ -407,6 +408,8 @@ namespace Thunder {
             , m_Interface(~0)
             , m_SystemdSocket(false)
         {
+            syslog(LOG_NOTICE, "RDKTV-31859 Constructor SocketPort localId: %s remoteId: %s type:%04x",  LocalId().c_str(), RemoteId().c_str(), m_SocketType);
+            printf("RDKTV-31859 Constructor SocketPort localId: %s remoteId: %s type:%04x\n",  LocalId().c_str(), RemoteId().c_str(), m_SocketType);
             NodeId::SocketInfo localAddress;
             socklen_t localSize = sizeof(localAddress);
 
@@ -416,6 +419,8 @@ namespace Thunder {
                 DestroySocket(m_Socket);
 
                 TRACE_L1("Error on preparing the port for communication. Error %d", __ERRORRESULT__);
+                printf("Error on preparing the port for communication. Error %d\n", __ERRORRESULT__);
+                syslog(LOG_NOTICE, "Error on preparing the port for communication. Error %d", __ERRORRESULT__);
             }
             else {
                 localAddress.Extension(remoteNode.Extension());
@@ -427,14 +432,15 @@ namespace Thunder {
                 m_State.store(SocketPort::LINK | SocketPort::OPEN | SocketPort::READ, Core::memory_order::memory_order_relaxed);
 
                 TRACE_L3("Socket %u constructed", m_Socket);
+                printf("RDKTV-31859 Constructed SocketPort%u localId: %s remoteId: %s type:%04x\n",  m_Socket, LocalId().c_str(), RemoteId().c_str(), m_SocketType);
             }
         }
 
         SocketPort::~SocketPort()
         {
             TRACE_L5("Destructor SocketPort <%p>", (this));
-            syslog(LOG_NOTICE,"RDKTV-31859 Destructor SocketPort ");
-            printf("RDKTV-31859 Destructor SocketPort \n");
+            syslog(LOG_NOTICE,"RDKTV-31859 Destructor SocketPort for port %u", m_Socket);
+            printf("RDKTV-31859 Destructor SocketPort for port %u\n", m_Socket);
 
             // Make sure the socket is closed before you destruct. Otherwise
             // the virtuals might be called, which are destructed at this point !!!!
