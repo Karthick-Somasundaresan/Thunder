@@ -188,6 +188,7 @@ namespace Plugin {
             // Signal a state change, Opened, Closed or Accepted
             virtual void StateChange()
             {
+                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
             }
 
             virtual uint16_t ReceiveData(uint8_t* dataFrame, const uint16_t receivedSize);

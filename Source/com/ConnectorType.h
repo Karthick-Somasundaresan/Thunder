@@ -111,6 +111,7 @@ namespace RPC {
                 CommunicatorClient::Close(Core::infinite);
             }
             void StateChange() override {
+                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
                 CommunicatorClient::StateChange();
                 _parent.Operational(CommunicatorClient::Source().IsOpen());
             }

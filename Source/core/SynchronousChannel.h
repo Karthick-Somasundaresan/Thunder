@@ -265,6 +265,7 @@ namespace Core {
         }
         virtual void StateChange() override
         {
+                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
             _adminLock.Lock();
             Reevaluate();
             _adminLock.Unlock();

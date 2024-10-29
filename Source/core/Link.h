@@ -175,6 +175,7 @@ namespace Core {
             // Signal a state change, Opened, Closed or Accepted
             void StateChange() override
             {
+                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
                 _parent.StateChange();
             }
 

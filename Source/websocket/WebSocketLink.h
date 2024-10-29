@@ -675,6 +675,7 @@ POP_WARNING()
             // Signal a state change, Opened, Closed, Accepted or Error
             void StateChange() override
             {
+                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
                 syslog(LOG_NOTICE, "RDKTV-31859 Calling StateChange in HandlerType in WebSocketLinkType");
                 printf("RDKTV-31859 Calling StateChange in HandlerType in WebSocketLinkType\n");
                 _adminLock.Lock();
@@ -1158,6 +1159,7 @@ POP_WARNING()
             // Signal a state change, Opened, Closed or Accepted
             void StateChange() override
             {
+                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
                 syslog(LOG_NOTICE,"RDKTV-31859 StateChange of Handler of WebSocketClientType");
                 printf("RDKTV-31859 StateChange of Handler of WebSocketClientType\n");
                 _parent.StateChange();
@@ -1329,6 +1331,7 @@ POP_WARNING()
             // Signal a state change, Opened, Closed or Accepted
             void StateChange() override
             {
+                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
                 syslog(LOG_NOTICE, "RDKTV-31859 StateChange of Handler");
                 printf("RDKTV-31859 StateChange of Handler\n");
                 _parent.StateChange();

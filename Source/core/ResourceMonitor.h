@@ -487,7 +487,7 @@ POP_WARNING()
 
                         // Event if the flagsSet == 0, call handle, maybe a break was issued by this RESOURCE..
                         syslog(LOG_NOTICE, "RDKTV-31859 Calling Resource Handle");
-                        printf("RDKTV-31859 Calling Resource Handle\n");
+                        // printf("RDKTV-31859 Calling Resource Handle\n");
                         entry->Handle(flagsSet);
 
                         Reset();

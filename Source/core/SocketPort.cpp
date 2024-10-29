@@ -1119,6 +1119,7 @@ namespace Thunder {
 
         void SocketPort::Handle(const uint16_t flagsSet)
         {
+            printf("RDKTV-31859 Inside SocketPort Handle\n");
             bool breakIssued = ((m_State & SocketPort::WRITESLOT) != 0);
 
             if ((flagsSet != 0) || (breakIssued == true)) {

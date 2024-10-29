@@ -142,6 +142,7 @@ namespace Web {
             void StateChange() override
             {
 
+                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
                 syslog(LOG_NOTICE, "RDKTV-31859 Calling StateChange in Channel:WebLinkType");
                 if (BaseClass::IsOpen() == true) {
                     ASSERT(_request->IsValid() == true);
@@ -568,6 +569,7 @@ POP_WARNING()
         // Notification of a channel state change..
         void StateChange() override
         {
+                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
         }
 
     private:

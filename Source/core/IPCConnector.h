@@ -824,6 +824,7 @@ POP_WARNING()
             // Notification of a channel state change..
             void StateChange() override
             {
+                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
                 if (_parent.Source().IsOpen() == false) {
                     // Whatever s hapening, Flush what we were doing..
                     _parent.Abort();
@@ -932,6 +933,7 @@ POP_WARNING()
         }
         virtual void StateChange()
         {
+                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
             __StateChange();
         }
 

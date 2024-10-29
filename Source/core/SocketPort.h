@@ -504,6 +504,7 @@ namespace Thunder {
                 }
                 void StateChange() override
                 {
+                    printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
                     syslog(LOG_NOTICE, "RDKTV-31859 Calling Handler:SocketPort StateChange");
                     printf("RDKTV-31859 Calling Handler:SocketPort StateChange\n");
                     SOCKET newClient;

@@ -705,7 +705,7 @@ namespace Core {
 
         /* virtual */ void SerialPort::Handle(const uint16_t flags)
         {
-
+            printf("RDKTV-31859 Inside SerialPort Handle\n");
             bool breakIssued = ((_state & SerialPort::WRITESLOT) != 0);
 
             if (((flags != 0) || (breakIssued == true)) && ((_state & SerialPort::OPEN) != 0)) {

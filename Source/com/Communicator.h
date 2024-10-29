@@ -421,6 +421,7 @@ namespace RPC {
             }
             void StateChange()
             {
+                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
                 // If the connection closes, we need to clean up....
                 if ((_channel.IsOpen() == false) && (_connectionMap != nullptr)) {
                     _connectionMap->Closed(_id);

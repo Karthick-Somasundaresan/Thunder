@@ -159,6 +159,7 @@ namespace Thunder {
                     }
                     virtual void StateChange() override
                     {
+                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
                         syslog(LOG_NOTICE, "RDKTV-31859 Inside StateChange of ChannelImpl");
                         printf("RDKTV-31859 Inside StateChange of ChannelImpl\n");
                         _parent.StateChange();
@@ -271,6 +272,7 @@ namespace Thunder {
             protected:
                 void StateChange()
                 {
+                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
                     syslog(LOG_NOTICE, "RDKTV-31859 Calling StateChange in Communication Channel");
                     printf("RDKTV-31859 Calling StateChange in Communication Channel\n");
                     _adminLock.Lock();
@@ -1492,6 +1494,7 @@ namespace Thunder {
         private:
             virtual void StateChange()
             {
+                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
             }
 
         private:

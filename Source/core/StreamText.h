@@ -252,6 +252,7 @@ namespace Core {
             // Signal a state change, Opened, Closed or Accepted
             virtual void StateChange()
             {
+                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
                 _parent.StateChange();
             }
             virtual bool IsIdle() const

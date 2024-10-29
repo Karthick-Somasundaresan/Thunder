@@ -134,6 +134,7 @@ namespace Core {
         void StateChange() override
         {
             // Do not forget to call the base...
+                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
             BaseClass::StateChange();
 
             StateChange(TemplateIntToType<LISTENING>());
@@ -142,6 +143,7 @@ namespace Core {
     private:
         void StateChange(const TemplateIntToType<true>&)
         {
+                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
             if ((BaseClass::Source().HasError() == true) && (BaseClass::Source().IsListening() == false)) {
 
                 TRACE_L1("Error on socket. Not much we can do except for closing up, Try to recover. (%d)", BaseClass::Source().State());
@@ -166,6 +168,7 @@ namespace Core {
         }
         void StateChange(const TemplateIntToType<false>&)
         {
+                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
             if (BaseClass::Source().HasError() == true) {
                 TRACE_L1("Error on socket. Not much we can do except for closing up, Try to recover. (%d)", BaseClass::Source().State());
                 // In case on an error, not much more we can do then close up..

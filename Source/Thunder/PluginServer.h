@@ -4330,6 +4330,7 @@ namespace PluginHost {
             // Whenever there is  a state change on the link, it is reported here.
             void StateChange() override
             {
+                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
                 TRACE(Activity, (_T("State change on [%d] to [%s]"), Id(), (IsSuspended() ? _T("SUSPENDED") : (IsUpgrading() ? _T("UPGRADING") : (IsWebSocket() ? _T("WEBSOCKET") : _T("WEBSERVER"))))));
                 syslog(LOG_NOTICE, "RDKTV-31859 State change on [%d] to [%s]", Id(), (IsSuspended() ? "SUSPENDED" : (IsUpgrading() ? "UPGRADING" : (IsWebSocket() ? "WEBSOCKET" : "WEBSERVER"))));
                 printf("RDKTV-31859 State change on [%d] to [%s]\n", Id(), (IsSuspended() ? "SUSPENDED" : (IsUpgrading() ? "UPGRADING" : (IsWebSocket() ? "WEBSOCKET" : "WEBSERVER"))));

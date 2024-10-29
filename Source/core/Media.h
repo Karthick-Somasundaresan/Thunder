@@ -102,6 +102,7 @@ namespace Core {
         protected:
             virtual void StateChange()
             {
+                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
                 _parent.Reevaluate();
             }
             virtual uint16_t SendData(uint8_t* dataFrame, const uint16_t maxSendSize)

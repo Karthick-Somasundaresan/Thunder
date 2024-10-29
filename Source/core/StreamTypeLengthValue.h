@@ -298,6 +298,7 @@ namespace Core {
         protected:
             virtual void StateChange()
             {
+                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
                 _parent.StateChange();
             }
             virtual uint16_t SendData(uint8_t* dataFrame, const uint16_t maxSendSize)
@@ -422,6 +423,7 @@ POP_WARNING()
 
         virtual void StateChange()
         {
+                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
         }
         virtual void Send(const typename DATAEXCHANGE::Request& element)
         {

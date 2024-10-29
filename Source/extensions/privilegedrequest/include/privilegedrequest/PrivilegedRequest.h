@@ -273,6 +273,7 @@ namespace Core {
             }
             void Handle(const uint16_t events) override
             {
+                printf("RDKTV-31859[%s:%d] Inside Connection Handle \n", __FILE__, __LINE__);
                 if ((events & POLLIN) != 0) {
                     Read();
                 }

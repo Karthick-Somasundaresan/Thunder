@@ -105,6 +105,7 @@ namespace Crypto {
 
             // Signal a state change, Opened, Closed or Accepted
             void StateChange() override {
+                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
 
                 ASSERT(_context != nullptr);
                 Update();
@@ -212,6 +213,7 @@ namespace Crypto {
         }
         void Handle(const uint16_t events) override
         {
+            printf("RDKTV-31859 Inside SecureSocketPort Handle\n");
             static_cast<Core::IResource&>(_handler).Handle(events);
         }
 
