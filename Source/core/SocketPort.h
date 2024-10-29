@@ -424,6 +424,7 @@ namespace Thunder {
 
             ~SocketStream() override {
                 syslog(LOG_NOTICE, "Inside SocketStream destructor");
+                printf("Inside SocketStream destructor localId: %s remoteId: %s\n", LocalId().c_str(), RemoteId().c_str());
             }
         };
 

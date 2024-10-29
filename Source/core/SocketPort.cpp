@@ -1150,24 +1150,27 @@ namespace Thunder {
                     TRACE_L3("HUP event received on socket %u", static_cast<uint32_t>(m_Socket));
                     syslog(LOG_NOTICE, "RDKTV-31859 HUP event received on socket %u", static_cast<uint32_t>(m_Socket));
                     printf("RDKTV-31859 HUP event received on socket %u\n", static_cast<uint32_t>(m_Socket));
+                    printf("RDKTV-31859 HUP event received on socket localId: %s remoteId: %s\n", LocalId().c_str(), RemoteId().c_str());
                     Closed();
                 }
                 else if ((flagsSet & POLLRDHUP) != 0) {
                     TRACE_L3("RDHUP event received on socket %u", static_cast<uint32_t>(m_Socket));
                     syslog(LOG_NOTICE, "RDHUP event received on socket %u", static_cast<uint32_t>(m_Socket));
-                    printf("RDHUP event received on socket %u\n", static_cast<uint32_t>(m_Socket));
+                    printf("RDKTV-31859 RDHUP event received on socket localId: %s remoteId: %s\n", LocalId().c_str(), RemoteId().c_str());
 
                     // The other side wants to shut down the connection. Let's do the same then.
                     // Once the connection is shut down in both directions, a HUP event will arrive.
                     Close(0);
                 }
                 else if (IsListening()) {
+                    printf("RDKTV-31859 event received on listening socket localId: %s remoteId: %s Flagset:%04x\n", LocalId().c_str(), RemoteId().c_str(), (flagsSet & POLLIN));
                     if ((flagsSet & POLLIN) != 0) {
                         // This triggeres an Addition of clients
                         Accepted();
                     }
                 }
                 else if (IsOpen()) {
+                    printf("RDKTV-31859 event received on Opened socket localId: %s remoteId: %s Flagset:%04x breakIssued: %d\n", LocalId().c_str(), RemoteId().c_str(), flagsSet, breakIssued);
                     if (((flagsSet & POLLOUT) != 0) || (breakIssued == true)) {
                         Write();
                     }
@@ -1176,6 +1179,7 @@ namespace Thunder {
                     }
                 }
                 else if ((IsConnecting() == true) && ((flagsSet & POLLOUT) != 0)) {
+                     printf("RDKTV-31859 event received on Connecting socket localId: %s remoteId: %s Flagset:%04x breakIssued: %d\n", LocalId().c_str(), RemoteId().c_str(), flagsSet, breakIssued);
                     Opened();
                 }
 #endif
@@ -1340,6 +1344,7 @@ namespace Thunder {
 
             if (m_State != 0) {
                 result = false;
+                printf("RDKTV-31859 Should have destroyed by not destroying the socket\n");
             }
             else {
                 syslog(LOG_NOTICE, "RDKTV-31859 Destroying socket");

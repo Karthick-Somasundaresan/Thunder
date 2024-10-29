@@ -393,7 +393,7 @@ POP_WARNING()
         uint32_t Worker()
         {
             syslog(LOG_NOTICE, "RDKTV-31859 Inside ResouceMonitorType Worker");
-            printf("RDKTV-31859 Inside ResouceMonitorType Worker\n");
+            // printf("RDKTV-31859 Inside ResouceMonitorType Worker\n");
             uint32_t delay = 0;
 
             _monitorRuns++;
@@ -457,6 +457,9 @@ POP_WARNING()
                     struct signalfd_siginfo info;
                     #endif
                     uint32_t VARIABLE_IS_NOT_USED bytes = read(_signalDescriptor, &info, sizeof(info));
+                    #ifndef __APPLE__
+                    printf("RDKTV-31859 got signal read out of poll :%d ", info.ssi_signo);
+                    #endif
                     ASSERT(bytes == sizeof(info) || bytes == 0);
                 }
 
