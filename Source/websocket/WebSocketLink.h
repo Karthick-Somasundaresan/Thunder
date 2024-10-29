@@ -403,7 +403,7 @@ PUSH_WARNING(DISABLE_WARNING_THIS_IN_MEMBER_INITIALIZER_LIST)
             }
 POP_WARNING()
             ~HandlerType() override {
-                printf("RDKTV-31859 Destructor for HandlerType for LocalId:%s RemoteId: %s", LocalId().c_str(), RemoteId().c_str());
+                printf("RDKTV-31859 Destructor for HandlerType for LocalId:%s RemoteId: %s", ACTUALLINK::LocalId().c_str(), ACTUALLINK::RemoteId().c_str());
             }
 
         public:
