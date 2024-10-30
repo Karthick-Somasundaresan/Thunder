@@ -51,6 +51,7 @@ namespace Core {
         {
             static_assert(INTERNALFACTORY == true, "This constructor can only be called if you specify an INTERNAL factory");
             TRACE_L1("Created an internal factory communication channel, on %s as %s", node.QualifiedName().c_str(), (LISTENING == true ? _T("Server") : _T("Client")));
+            printf("[RDKTV-31859 ] [%d] Created an internal factory communication channel, on %s as %s", getpid(), node.QualifiedName().c_str(), (LISTENING == true ? _T("Server") : _T("Client")));
 
             ASSERT(_factory.IsValid() == true);
 
@@ -63,6 +64,7 @@ namespace Core {
         {
             static_assert(INTERNALFACTORY == false, "This constructor can only be called if you specify an EXTERNAL factory");
             TRACE_L1("Created an external factory communication channel, on %s as %s", node.QualifiedName().c_str(), (LISTENING == true ? _T("Server") : _T("Client")));
+            printf("[RDKTV-31859] [%d] Created an external factory communication channel, on %s as %s", getpid(), node.QualifiedName().c_str(), (LISTENING == true ? _T("Server") : _T("Client")));
 
             ASSERT(_factory.IsValid() == true);
 
@@ -76,6 +78,7 @@ namespace Core {
             static_assert(INTERNALFACTORY == false, "This constructor can only be called if you specify an EXTERNAL factory");
 
             TRACE_L1(" A remote socket hooked up to an external factory communication channels as %s", (LISTENING == true ? _T("Server") : _T("Client")));
+            printf("[RDKTV-31859][%d] A remote socket hooked up to an external factory communication channels as %s", getpid(), (LISTENING == true ? _T("Server") : _T("Client")));
 
             ASSERT(_factory.IsValid() == true);
 
@@ -85,6 +88,7 @@ namespace Core {
         ~IPCChannelClientType() override
         {
             IPCChannelType<SocketPort, EXTENSION>::Source().Close(Core::infinite);
+            printf("[RDKTV-31859][%d] Inside destructor of IPCChannelClientType as %s",getpid(), (LISTENING == true ? _T("Server") : _T("Client")));
 
             if (INTERNALFACTORY == true) {
                 _factory->DestroyFactories();
@@ -134,7 +138,7 @@ namespace Core {
         void StateChange() override
         {
             // Do not forget to call the base...
-                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
+                printf("RDKTV-31859 [%d] [%s:%d]\n", getpid(), __FILE__, __LINE__);
             BaseClass::StateChange();
 
             StateChange(TemplateIntToType<LISTENING>());
@@ -143,7 +147,7 @@ namespace Core {
     private:
         void StateChange(const TemplateIntToType<true>&)
         {
-                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
+                printf("RDKTV-31859[%s] [%s:%d]\n",getpid(), __FILE__, __LINE__);
             if ((BaseClass::Source().HasError() == true) && (BaseClass::Source().IsListening() == false)) {
 
                 TRACE_L1("Error on socket. Not much we can do except for closing up, Try to recover. (%d)", BaseClass::Source().State());
@@ -168,7 +172,7 @@ namespace Core {
         }
         void StateChange(const TemplateIntToType<false>&)
         {
-                printf("RDKTV-31859 [%s:%d]\n", __FILE__, __LINE__);
+            printf("RDKTV-31859 [pid:%d] [%s:%d]\n", getpid(), __FILE__, __LINE__);
             if (BaseClass::Source().HasError() == true) {
                 TRACE_L1("Error on socket. Not much we can do except for closing up, Try to recover. (%d)", BaseClass::Source().State());
                 // In case on an error, not much more we can do then close up..

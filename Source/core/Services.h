@@ -193,6 +193,7 @@ namespace Core {
             ASSERT (object.IsValid() == true);
 
             TRACE_L1("Loading the reference library for: [%s] using [%s]", typeid(ACTUALSERVICE).name(), System::MODULE_NAME);
+            printf("[RDKTV-31859] [%d] Loading the reference library for: [%s] using [%s]", getpid(), typeid(ACTUALSERVICE).name(), System::MODULE_NAME);
             object->_referenceLib = Library(&System::MODULE_NAME);
 
             return (Extract<INTERFACE>(object, TemplateIntToType<std::is_same<ACTUALSERVICE, INTERFACE>::value>()));
