@@ -568,7 +568,7 @@ namespace Thunder {
 
             if ((nStatus == Core::ERROR_NONE) || (nStatus == Core::ERROR_INPROGRESS)) {
 
-                syslog(LOG_NOTICE, "Construct SocketPort %u localId: %s RemoteId:%s", static_cast<uint32_t>(m_Socket), LocalId().c_str(), RemoteId().c_str());
+                syslog(LOG_NOTICE, "[RDKTV-31859] Construct SocketPort %u localId: %s RemoteId:%s", static_cast<uint32_t>(m_Socket), LocalId().c_str(), RemoteId().c_str());
                 ResourceMonitor::Instance().Register(*this);
 
                 if (nStatus == Core::ERROR_INPROGRESS) {
@@ -1107,13 +1107,13 @@ namespace Thunder {
                 }
 #else
                 if ((flagsSet & POLLHUP) != 0) {
-                    syslog(LOG_NOTICE, "HUP event received on socket %u localId: %s RemoteId:%s", static_cast<uint32_t>(m_Socket), LocalId().c_str(), RemoteId().c_str());
+                    syslog(LOG_NOTICE, "[RDKTV-31859] HUP event received on socket %u localId: %s RemoteId:%s", static_cast<uint32_t>(m_Socket), LocalId().c_str(), RemoteId().c_str());
                     TRACE_L3("HUP event received on socket %u", static_cast<uint32_t>(m_Socket));
                     Closed();
                 }
                 else if ((flagsSet & POLLRDHUP) != 0) {
                     TRACE_L3("RDHUP event received on socket %u", static_cast<uint32_t>(m_Socket));
-                    syslog(LOG_NOTICE, "RDHUP event received on socket %u localId: %s RemoteId:%s", static_cast<uint32_t>(m_Socket), LocalId().c_str(), RemoteId().c_str());
+                    syslog(LOG_NOTICE, "[RDKTV-31859] RDHUP event received on socket %u localId: %s RemoteId:%s", static_cast<uint32_t>(m_Socket), LocalId().c_str(), RemoteId().c_str());
 
                     // The other side wants to shut down the connection. Let's do the same then.
                     // Once the connection is shut down in both directions, a HUP event will arrive.
@@ -1127,7 +1127,7 @@ namespace Thunder {
                 }
                 else if (IsOpen()) {
                     if (((flagsSet & POLLOUT) != 0) || (breakIssued == true)) {
-                        syslog(LOG_NOTICE, "write event received on socket %u localId: %s RemoteId:%s flagsset:%d", static_cast<uint32_t>(m_Socket), LocalId().c_str(), RemoteId().c_str(), flagsSet);
+                        syslog(LOG_NOTICE, "[RDKTV-31859] write event received on socket %u localId: %s RemoteId:%s flagsset:%d", static_cast<uint32_t>(m_Socket), LocalId().c_str(), RemoteId().c_str(), flagsSet);
                         Write();
                     }
                     if ((flagsSet & POLLIN) != 0) {
