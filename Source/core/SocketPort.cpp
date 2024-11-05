@@ -631,9 +631,11 @@ namespace Thunder {
 
                         // This is a connectionless link, do not expect a close from the otherside.
                         // No use to wait on anything !!, Signal a FORCED CLOSURE (EXCEPTION && SHUTDOWN)
+                        printf("[RDKTV-31859] setting state to SHUTDOWN with Exception\n")
                         m_State |= (SHUTDOWN | EXCEPTION);
                     }
                     else {
+                        printf("[RDKTV-31859] setting state to SHUTDOWN ONLY\n")
                         m_State |= SHUTDOWN;
 
                         // Block new data from coming in, signal the other side that we close !!
@@ -657,6 +659,7 @@ namespace Thunder {
                     closed = (WaitForClosure(waitTime) == Core::ERROR_NONE);
 
                     if (closed == false) {
+                        printf("[RDKTV-31859] Socket %s not closed even after wait-time(%d)\n", LocalId().c_str(), waitTime);
                         // Make this a forced close !!!
                         m_State |= EXCEPTION;
 
@@ -671,6 +674,7 @@ namespace Thunder {
                 }
             } else {
                 TRACE_L3("Socket is already closed and destroyed");
+                printf("[RDKTV-31859] Socket %s is already closed and destroyed\n", LocalId().c_str());
             }
 
             m_syncAdmin.Unlock();
@@ -684,6 +688,7 @@ namespace Thunder {
 
             if ((m_State & (SocketPort::SHUTDOWN | SocketPort::OPEN | SocketPort::EXCEPTION)) == SocketPort::OPEN) {
 
+                printf("[RDKTV-31859] Socket: %s updating m_State with writeSlot within Lock\n", LocalId().c_str());
                 m_State |= SocketPort::WRITESLOT;
                 ResourceMonitor::Instance().Break();
             }
@@ -989,6 +994,7 @@ namespace Thunder {
             // Right, a wait till connection is closed is requested..
             while ((waiting > 0) && (IsOpen() == true)) {
                 m_syncAdmin.Lock();
+                printf("[RDKTV-31859] state is read within lock\n");
                 state = m_State & SocketPort::WRITESLOT; //Read the state and check write slot is cleared
                 m_syncAdmin.Unlock();
                 if (state == 0) {
@@ -1076,9 +1082,9 @@ namespace Thunder {
 
                 // It is the first time we are going to pick this one up..
                 if ((m_State & SocketPort::MONITOR) == 0) {
+                    printf("RDKTV-31859 Start add port to monitoring value updated without lock\n");
                     m_State |= SocketPort::MONITOR;
                     syslog(LOG_NOTICE, "RDKTV-31859 Start add port to monitoring");
-                    printf("RDKTV-31859 Start add port to monitoring\n");
 
                     if ((m_State & (SocketPort::OPEN | SocketPort::ACCEPT)) == SocketPort::OPEN) {
                         Opened();
@@ -1345,7 +1351,7 @@ namespace Thunder {
 
             if (m_State != 0) {
                 result = false;
-                printf("RDKTV-31859 Should have destroyed by not destroying the socket\n");
+                printf("RDKTV-31859 Should have destroyed by not destroying the socket m_State: \n", m_State);
             }
             else {
                 syslog(LOG_NOTICE, "RDKTV-31859 Destroying socket");
