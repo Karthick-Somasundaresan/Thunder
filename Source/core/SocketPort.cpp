@@ -426,6 +426,10 @@ namespace Thunder {
             // Make sure the socket is closed before you destruct. Otherwise
             // the virtuals might be called, which are destructed at this point !!!!
             ASSERT((m_Socket == INVALID_SOCKET) || (IsClosed()));
+            if (m_Socket !=INVALID_SOCKET || !IsClosed()){
+                syslog(LOG_NOTICE, "[RDKTV-31859] Socket Not closed but reached Desctructor: local: %s remote: %s type: %s", LocalId().c_str(), RemoteId().c_str(), typeid(*this).name());
+                printf("[RDKTV-31859] Socket Not closed but reached Desctructor: local: %s remote: %s type: %s", LocalId().c_str(), RemoteId().c_str(), typeid(*this).name());
+            }
 
             if (m_Socket != INVALID_SOCKET) {
                 DestroySocket(m_Socket);
