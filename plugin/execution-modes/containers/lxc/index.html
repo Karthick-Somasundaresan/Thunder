@@ -8,28 +8,28 @@
       
       
       
-        <link rel="canonical" href="https://rdkcentral.github.com/Thunder/utils/threading/mutex/">
+        <link rel="canonical" href="https://rdkcentral.github.com/Thunder/plugin/execution-modes/containers/lxc/">
       
       
-        <link rel="prev" href="../worker-pool/">
+        <link rel="prev" href="../runc/">
       
       
-        <link rel="next" href="../../time/">
+        <link rel="next" href="../../../lifecycle/">
       
       
-      <link rel="icon" href="../../../assets/images/favicon.png">
+      <link rel="icon" href="../../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.44">
     
     
       
-        <title>Mutexes - Thunder</title>
+        <title>Lxc - Thunder</title>
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.0253249f.min.css">
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.0253249f.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -48,9 +48,9 @@
       
     
     
-      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+      <link rel="stylesheet" href="../../../../stylesheets/extra.css">
     
-    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -75,6 +75,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#what-is-lxc" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -87,7 +92,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../../.." title="Thunder" class="md-header__button md-logo" aria-label="Thunder" data-md-component="logo">
+    <a href="../../../.." title="Thunder" class="md-header__button md-logo" aria-label="Thunder" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -107,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Mutexes
+              Lxc
             
           </span>
         </div>
@@ -220,7 +225,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../.." title="Thunder" class="md-nav__button md-logo" aria-label="Thunder" data-md-component="logo">
+    <a href="../../../.." title="Thunder" class="md-nav__button md-logo" aria-label="Thunder" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -250,7 +255,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../.." class="md-nav__link">
+      <a href="../../../.." class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -310,7 +315,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../introduction/intro/" class="md-nav__link">
+      <a href="../../../../introduction/intro/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -368,7 +373,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../introduction/repos/" class="md-nav__link">
+      <a href="../../../../introduction/repos/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -389,7 +394,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../introduction/build_linux/" class="md-nav__link">
+      <a href="../../../../introduction/build_linux/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -410,7 +415,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../introduction/build_windows/" class="md-nav__link">
+      <a href="../../../../introduction/build_windows/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -431,7 +436,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../introduction/config/" class="md-nav__link">
+      <a href="../../../../introduction/config/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -452,7 +457,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../introduction/usage/" class="md-nav__link">
+      <a href="../../../../introduction/usage/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -518,7 +523,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../introduction/architecture/overview/" class="md-nav__link">
+      <a href="../../../../introduction/architecture/overview/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -576,7 +581,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../introduction/architecture/rpc/jsonrpc/" class="md-nav__link">
+      <a href="../../../../introduction/architecture/rpc/jsonrpc/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -597,7 +602,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../introduction/architecture/rpc/comrpc/" class="md-nav__link">
+      <a href="../../../../introduction/architecture/rpc/comrpc/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -638,8 +643,10 @@
       
   
   
+    
   
   
+  
     
     
     
@@ -649,11 +656,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
@@ -667,7 +674,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             Plugin Development
@@ -681,7 +688,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../plugin/intro/" class="md-nav__link">
+      <a href="../../../intro/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -699,6 +706,8 @@
                 
   
   
+    
+  
   
   
     
@@ -707,11 +716,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" checked>
         
           
           <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
@@ -725,7 +734,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3_2">
             <span class="md-nav__icon md-icon"></span>
             Execution Modes
@@ -739,7 +748,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../plugin/execution-modes/execution-modes/" class="md-nav__link">
+      <a href="../../execution-modes/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -760,7 +769,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../plugin/execution-modes/inprocess/" class="md-nav__link">
+      <a href="../../inprocess/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -781,7 +790,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../plugin/execution-modes/outofprocess/" class="md-nav__link">
+      <a href="../../outofprocess/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -802,7 +811,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../plugin/execution-modes/distrubuted/" class="md-nav__link">
+      <a href="../../distrubuted/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -820,6 +829,8 @@
                 
   
   
+    
+  
   
   
     
@@ -828,11 +839,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_5" checked>
         
           
           <label class="md-nav__link" for="__nav_3_2_5" id="__nav_3_2_5_label" tabindex="0">
@@ -846,7 +857,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_2_5_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_2_5_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3_2_5">
             <span class="md-nav__icon md-icon"></span>
             Containers
@@ -860,7 +871,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../plugin/execution-modes/containers/container/" class="md-nav__link">
+      <a href="../container/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -881,7 +892,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../plugin/execution-modes/containers/runc/" class="md-nav__link">
+      <a href="../runc/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -899,10 +910,19 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../../plugin/execution-modes/containers/lxc/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -911,6 +931,7 @@
   
 
       </a>
+      
     </li>
   
 
@@ -939,7 +960,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../plugin/lifecycle/" class="md-nav__link">
+      <a href="../../../lifecycle/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -960,7 +981,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../plugin/principles/" class="md-nav__link">
+      <a href="../../../principles/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1018,7 +1039,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../plugin/interfaces/interfaces/" class="md-nav__link">
+      <a href="../../../interfaces/interfaces/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1039,7 +1060,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../plugin/interfaces/docs/" class="md-nav__link">
+      <a href="../../../interfaces/docs/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1060,7 +1081,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../plugin/interfaces/guidelines/" class="md-nav__link">
+      <a href="../../../interfaces/guidelines/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1081,7 +1102,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../plugin/interfaces/tags/" class="md-nav__link">
+      <a href="../../../interfaces/tags/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1110,7 +1131,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../plugin/config/" class="md-nav__link">
+      <a href="../../../config/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1131,7 +1152,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../plugin/errors/" class="md-nav__link">
+      <a href="../../../errors/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1152,7 +1173,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../plugin/versioning/" class="md-nav__link">
+      <a href="../../../versioning/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1173,7 +1194,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../plugin/messaging/" class="md-nav__link">
+      <a href="../../../messaging/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1194,7 +1215,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../plugin/subsystems/" class="md-nav__link">
+      <a href="../../../subsystems/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1215,7 +1236,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../plugin/proxypool/" class="md-nav__link">
+      <a href="../../../proxypool/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1236,7 +1257,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../plugin/private-comrpc/" class="md-nav__link">
+      <a href="../../../private-comrpc/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1257,7 +1278,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../plugin/split-implementation.md" class="md-nav__link">
+      <a href="../../../split-implementation.md" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1278,7 +1299,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../plugin/composite/" class="md-nav__link">
+      <a href="../../../composite/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1303,8 +1324,6 @@
       
   
   
-    
-  
   
   
     
@@ -1316,11 +1335,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
         
           
           <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
@@ -1334,7 +1353,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             Common Utilities
@@ -1348,7 +1367,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../strings/" class="md-nav__link">
+      <a href="../../../../utils/strings/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1406,7 +1425,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../files/files/" class="md-nav__link">
+      <a href="../../../../utils/files/files/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1427,7 +1446,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../files/observer/" class="md-nav__link">
+      <a href="../../../../utils/files/observer/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1456,7 +1475,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../json/" class="md-nav__link">
+      <a href="../../../../utils/json/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1474,8 +1493,6 @@
                 
   
   
-    
-  
   
   
     
@@ -1484,11 +1501,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" >
         
           
           <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
@@ -1502,7 +1519,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4_4">
             <span class="md-nav__icon md-icon"></span>
             Threading
@@ -1516,7 +1533,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../worker-pool/" class="md-nav__link">
+      <a href="../../../../utils/threading/worker-pool/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1534,17 +1551,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../../../utils/threading/mutex/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1553,7 +1563,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -1574,7 +1583,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../time/" class="md-nav__link">
+      <a href="../../../../utils/time/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1595,7 +1604,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../timers/" class="md-nav__link">
+      <a href="../../../../utils/timers/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1616,7 +1625,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../web/" class="md-nav__link">
+      <a href="../../../../utils/web/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1637,7 +1646,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../sockets/" class="md-nav__link">
+      <a href="../../../../utils/sockets/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1658,7 +1667,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../singletons/" class="md-nav__link">
+      <a href="../../../../utils/singletons/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1679,7 +1688,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../processes/" class="md-nav__link">
+      <a href="../../../../utils/processes/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1747,7 +1756,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../client/intro/" class="md-nav__link">
+      <a href="../../../../client/intro/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1768,7 +1777,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../client/json-rpc/" class="md-nav__link">
+      <a href="../../../../client/json-rpc/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1789,7 +1798,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../client/com-rpc/" class="md-nav__link">
+      <a href="../../../../client/com-rpc/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1857,7 +1866,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../debugging/debug/" class="md-nav__link">
+      <a href="../../../../debugging/debug/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1878,7 +1887,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../debugging/thundershark/" class="md-nav__link">
+      <a href="../../../../debugging/thundershark/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1983,7 +1992,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../walkthrough/hello-world/setup/" class="md-nav__link">
+      <a href="../../../../walkthrough/hello-world/setup/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2004,7 +2013,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../walkthrough/hello-world/guide/" class="md-nav__link">
+      <a href="../../../../walkthrough/hello-world/guide/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2062,7 +2071,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../walkthrough/hello-world/client-jsonrpc/" class="md-nav__link">
+      <a href="../../../../walkthrough/hello-world/client-jsonrpc/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2083,7 +2092,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../walkthrough/hello-world/client-comrpc/" class="md-nav__link">
+      <a href="../../../../walkthrough/hello-world/client-comrpc/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2167,7 +2176,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../docs/" class="md-nav__link">
+      <a href="../../../../docs/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2188,7 +2197,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../references/references/" class="md-nav__link">
+      <a href="../../../../references/references/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2209,7 +2218,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../issuetemplate/issuetemplate/" class="md-nav__link">
+      <a href="../../../../issuetemplate/issuetemplate/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2247,6 +2256,8 @@
   
   
   
+    
+  
   
 </nav>
                   </div>
@@ -2264,9 +2275,129 @@
   
 
 
-  <h1>Mutexes</h1>
+<h1 id="what-is-lxc">What is LXC ?</h1>
+<p>LXC (Linux Containers) is a lightweight virtualization method that provides an environment similar to a complete Linux system but without the overhead of a full virtual machine. It uses a combination of Linux kernel features like namespaces and cgroups to isolate processes and manage resource allocation..</p>
+<h1 id="setup-in-buildrootlithosphere">Setup in Buildroot/Lithosphere</h1>
+<ol>
+<li>
+<p>Make sure kernel has all the futures needed for containerization. The easiest way to enable them is to use raspberrypi3_wpe_ml_container_defconfig.</p>
+</li>
+<li>
+<p>Enable containers support in Thunder.
+<div class="highlight"><pre><span></span><code>Thunder -&gt; Extensions -&gt; Process Containers
+</code></pre></div></p>
+</li>
+<li>
+<p>Select RunC as the backend engine for containers. 
+<div class="highlight"><pre><span></span><code>Thunder -&gt; Extensions -&gt; Process Containers -&gt; Containers Backend -&gt; LXC
+</code></pre></div></p>
+</li>
+<li>
+<p>(optional) Enable containers plugin for info about running containers
+<div class="highlight"><pre><span></span><code>Thunder -&gt; Plugins -&gt; ProcessContainers
+</code></pre></div></p>
+</li>
+</ol>
+<h1 id="setting-up-lxc-container">Setting Up LXC Container</h1>
+<p>For demo purposes, we will use the OCDM plugin. To run a containerized ThunderNanoService you will need to create rootfs with all of the dependencies of the nanoservice and ThunderPlugin as executable. For this tutorial rootfs.tar generated by buildroot/lithosphere/yocto will be used as reference roots.</p>
+<p>1) Before running the system, create a folder named 'Container' under /rootfs/usr/share/Thunder/OCDM/</p>
+<p>2) Create another folder named 'rootfs' under /rootfs/usr/share/Thunder/OCDM/Container</p>
+<p>3) Copy the whole rootfs of the sdcard into /rootfs/usr/share/Thunder/OCDM/Container/rootfs</p>
+<h1 id="adjusting-configuration-for-thunder">Adjusting Configuration for Thunder</h1>
+<ol>
+<li>
+<p>Create a file named 'config' under /rootfs/usr/share/Thunder/OCDM/Container and place the below content in it.
+<div class="highlight"><pre><span></span><code># Template used to create this container: /usr/share/lxc/templates/lxc-download
+# Parameters passed to the template: --no-validate
+# Template script checksum (SHA-1): 273c51343604eb85f7e294c8da0a5eb769d648f3
+# For additional config options, please look at lxc.container.conf(5)
 
+# Uncomment the following line to support nesting containers:
+#lxc.include = /usr/share/lxc/config/nesting.conf
+# (Be aware this has security implications)
 
+lxc.mount.entry = /tmp tmp none bind,optional 0 0
+
+# Distribution configuration
+lxc.include = /usr/share/lxc/config/common.conf
+lxc.include = /usr/share/lxc/config/userns.conf
+lxc.arch = linux32
+
+# Container specific configuration
+# if you see access related issue, disable user/group id settings below
+lxc.idmap = u 0 100000 65536
+lxc.idmap = g 0 100000 65536
+lxc.rootfs.path = dir:/usr/share/Thunder/OCDM/Container/rootfs
+lxc.uts.name = OCDM
+
+# Inherit envionment needed by Thunder nanoservices
+lxc.environment = PATH
+lxc.environment = MESSAGE_DISPATCHER_CONFIG
+
+# Network configuration
+lxc.net.0.type = empty
+#lxc.net.0.type = veth
+#lxc.net.0.link = lxcbr0
+#lxc.net.0.flags = up
+#lxc.net.0.hwaddr = 00:16:XX:XX:XX:XX
+</code></pre></div></p>
+</li>
+<li>
+<p>Comment out below line in /usr/share/lxc/config/common.conf:
+<div class="highlight"><pre><span></span><code># lxc.seccomp.profile = /usr/share/lxc/config/common.seccomp
+</code></pre></div></p>
+</li>
+<li>
+<p>In plugin configuration (eg. <code>/etc/Thunder/plugin/OCDM.json</code> for OCDM) change 
+<code>"mode": Local</code> 
+to 
+<code>"mode": "Container"</code></p>
+</li>
+<li>
+<p>If everything works fine, you should see OCDM working just lie an ordinary OOP plugin.</p>
+</li>
+</ol>
+<h1 id="mounting-a-shared-directory-between-host-and-lxc-container">Mounting a shared directory between host and LXC container</h1>
+<p>Most often, we may need to securely share files between the host machine and a container.</p>
+<p>Example : File logging from a container to a logging system folder located at the host machine.</p>
+<ol>
+<li>Create a directory in host.
+<div class="highlight"><pre><span></span><code>mkdir /testshare &amp;&amp; chmod 7770 /testshare
+</code></pre></div></li>
+<li>Create a directory in lxc container (eg: OCDM container)
+<div class="highlight"><pre><span></span><code>mkdir /usr/share/Thunder/OCDM/Container/rootfs/TestLogging &amp;&amp; chmod 7770 /usr/share/Thunder/OCDM/Container/rootfs/TestLogging
+</code></pre></div></li>
+<li>Edit container config file (eg: /usr/share/Thunder/OCDM/Container/config)
+<div class="highlight"><pre><span></span><code>lxc.mount.entry = /testshare TestLogging none bind,rw 0 0
+</code></pre></div></li>
+<li>UID/GID mapping
+<div class="highlight"><pre><span></span><code># Container specific configuration
+#lxc.idmap = u 0 100000 65536
+#lxc.idmap = g 0 100000 65536
+
+# Container&#39;s UID/GID 0-65535 are mapped to host&#39;s 100000-165535,
+# but UID/GID 1000 on the container is mapped to host&#39;s UID/GID 1000.
+lxc.idmap = u 0 100000 1000
+lxc.idmap = g 0 100000 1000
+lxc.idmap = u 1000 1000 1
+lxc.idmap = g 1000 1000 1
+lxc.idmap = u 1001 101001 64535
+lxc.idmap = g 1001 101001 64535
+</code></pre></div></li>
+<li>
+<p>Accessing contents from a shared folder and permissions .</p>
+<p>Use case 1 : 
+    Host has created a domain socket within the shared folder.
+    Container running in non-privileged mode (not root mode), trying to write to this domain socket.<br />
+    In this use case, the write operation will fail, if there is NO write permission for "other" user  (eg: 775 instead of 777).
+    So make sure that the domain socket has been created with the required access right.</p>
+</li>
+</ol>
+<h2 id="good-to-know">Good To Know</h2>
+<ul>
+<li>lxc API to kill a container is blocking, not guarenteed to work and therefore not used</li>
+<li>If ifconfig is not available in the container use the ip command (e.g. "ip address" to get IP address info for the device)</li>
+</ul>
 
 
 
@@ -2302,7 +2433,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../worker-pool/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Worker Pool">
+          <a href="../runc/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Runc">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2312,20 +2443,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Worker Pool
+                Runc
               </div>
             </div>
           </a>
         
         
           
-          <a href="../../time/" class="md-footer__link md-footer__link--next" aria-label="Next: Time">
+          <a href="../../../lifecycle/" class="md-footer__link md-footer__link--next" aria-label="Next: Plugin Lifecycle">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Time
+                Plugin Lifecycle
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -2359,10 +2490,10 @@
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.footer", "navigation.sections", "toc.follow", "navigation.top", "content.code.copy", "content.code.annotate"], "search": "../../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../../../..", "features": ["navigation.footer", "navigation.sections", "toc.follow", "navigation.top", "content.code.copy", "content.code.annotate"], "search": "../../../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.83f73b43.min.js"></script>
+      <script src="../../../../assets/javascripts/bundle.83f73b43.min.js"></script>
       
     
   </body>
