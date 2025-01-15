@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.47">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.49">
     
     
       
@@ -1686,6 +1686,72 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_11" id="__nav_4_11_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Protocols
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_11">
+            <span class="md-nav__icon md-icon"></span>
+            Protocols
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../rfc/websocket/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WebSocket
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2408,7 +2474,7 @@ interface definitions to a format understandable by the plugin. <em>ThunderShark
 <p><em>Wireshark</em> version 4.0 or later is required.</p>
 </blockquote>
 <h2 id="prerequisites">Prerequisites</h2>
-<p>Firstly, the file <code>protocol-thunder-comrpc.lua</code> file needs to be placed in <em>Wireshark</em>'s plugins folder. In Windows this is typically <code>%APPDATA%\Wireshark\plugins</code>
+<p>Firstly, the file <a href="https://github.com/WebPlatformForEmbedded/ThunderShark"><code>protocol-thunder-comrpc.lua</code></a> file needs to be placed in <em>Wireshark</em>'s plugins folder. In Windows this is typically <code>%APPDATA%\Wireshark\plugins</code>
 or <code>%APPDATA%\Roaming\Wireshark\plugins</code> folder, while on Linux it's the <code>~/.local/lib/wireshark/plugins</code> folder.</p>
 <p>Secondly, using the <a href="https://github.com/rdkcentral/ThunderTools/tree/master/LuaGenerator"><em>LuaGanerator</em></a> tool, interface definitions need to be created. </p>
 <p>Typical usage:
@@ -2417,7 +2483,7 @@ or <code>%APPDATA%\Roaming\Wireshark\plugins</code> folder, while on Linux it's 
 <div class="highlight"><pre><span></span><code>LuaGenerator.bat [&lt;Thunder_dir&gt; &lt;ThunderInterfaces_dir&gt;]
 </code></pre></div></p>
 <p>The tool will produce a <code>protocol-thunder-comrpc.data</code> file that holds all interface definitions combined and converted to Lua data tables. This file must be
-placed in the same folder as <code>protocol-thunder-comrpc.lua</code> file (i.e. <em>Wireshark</em>'s plugins folder). This step should be repeated each time there is a change in the interfaces.</p>
+placed in the same folder as <a href="https://github.com/WebPlatformForEmbedded/ThunderShark"><code>protocol-thunder-comrpc.lua</code></a> file (i.e. <em>Wireshark</em>'s plugins folder). This step should be repeated each time there is a change in the interfaces.</p>
 <blockquote>
 <p>No instrumentation (code changes) of <em>Thunder</em> core or plugins is required!</p>
 </blockquote>
@@ -2547,7 +2613,7 @@ tied together and additionally the total call duration is calculated.</p>
     <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.footer", "navigation.sections", "toc.follow", "navigation.top", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.83f73b43.min.js"></script>
+      <script src="../../assets/javascripts/bundle.88dd0f4e.min.js"></script>
       
     
   </body>
