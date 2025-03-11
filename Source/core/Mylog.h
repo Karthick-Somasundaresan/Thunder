@@ -14,7 +14,7 @@
 static void myLog(const char *format, ... )
 {
 	FILE* pFile;
-	const char * FILE_NAME = "/root/myLog.log";
+	char FILE_NAME[128] = {'\0'};
 	char finalBuf[2048]= {0};
 	char buffer[1024] = {0};
 	char xbuffer[30]= {0};
@@ -29,6 +29,7 @@ static void myLog(const char *format, ... )
 	va_end (args);
 	snprintf(finalBuf,sizeof(finalBuf),"%s%06ld [TID: %lu] %s\n",xbuffer,tv.tv_usec, pthread_self(), buffer);
 	int strl = strlen(finalBuf);
+	snprintf(FILE_NAME,sizeof(FILE_NAME), "/root/mylog.%d.log", getpid());
 	pFile = fopen(FILE_NAME, "a");
 	if(pFile)
 	{
