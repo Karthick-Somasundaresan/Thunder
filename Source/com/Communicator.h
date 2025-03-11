@@ -330,6 +330,7 @@ namespace RPC {
     public:
         void Procedure(Core::IPCChannel& channel, Core::ProxyType<Core::IIPC>& data) override
         {
+            MYLOG("[ILIFETIME] Calling Procedure in Invoke Handler");
             Core::ProxyType<Core::IPCChannel> proxyChannel(channel);
             Job::Invoke(proxyChannel, data);
         }
@@ -1110,14 +1111,17 @@ namespace RPC {
                 void* result = nullptr;
 
                 _adminLock.Lock();
+		MYLOG("[ILIFETIME] Inside Announce in RemoteConnections");
 
                 response.Action(Data::Output::NONE);
 
                 if (info.IsRequested() == true) {
 
+		    MYLOG("[ILIFETIME] isRequested is true in Announce in RemoteConnections");
                     Request(channel, info);
                 } else {
 
+		    MYLOG("[ILIFETIME] isRequested is false in Announce in RemoteConnections");
                     if (channel->Extension().IsRegistered() == false) {
 
                         // This is an announce message from a process that wasn't created by us. So typically this is
@@ -1130,6 +1134,7 @@ namespace RPC {
 
                         // Add ref is done during the creation, no need to take another reference unless we also would release it after
                         // insertion :-)
+		        MYLOG("[ILIFETIME] Adding connection Id to _connections map in Announce in RemoteConnections");
                         _connections.emplace(
                             std::piecewise_construct,
                                 std::forward_as_tuple(remoteConnection->Id()),
@@ -1138,11 +1143,13 @@ namespace RPC {
                         Activated(remoteConnection);
                     }
 
+		    MYLOG("[ILIFETIME] Calling Handle in Announce in RemoteConnections");
                     result = Handle(channel, info, response);
                 }
 
                 _adminLock.Unlock();
 
+		MYLOG("[ILIFETIME] Exit Announce in RemoteConnections");
                 return (result);
             }
             void Terminated(RPC::IRemoteConnection* connection)
@@ -1198,10 +1205,17 @@ namespace RPC {
             {
                 Core::ProxyType<Core::IPCChannel> baseChannel(channel);
                 ASSERT(baseChannel.IsValid() == true);
+		MYLOG("[ILIFETIME] ENTER RemoteConnectionMap::Handle ");
+
+		MYLOG("[ILIFETIME] RemoteConnectionMap::Handle received info of type %s", info.IsOffer()?"Offer": info.IsRevoke()?"Revoke":info.IsRequested()?"Request":"Acquire");
 
                 void* result = nullptr;
+		if (info.IsAcquire() == true) {
+			MYLOG("[ILIFETIME] RemoteConnectionMap::Handle Acquire for interface: %04x", info.InterfaceId());
+		}
 
                 if (info.IsOffer() == true) {
+			MYLOG("[ILIFETIME] isOffer == true RemoteConnectionMap::Handle ");
 
                     Core::instance_id implementation = info.Implementation();
                     ASSERT(implementation != 0);
@@ -1222,6 +1236,7 @@ namespace RPC {
 
                 } else if (info.IsRevoke() == true) {
 
+			MYLOG("[ILIFETIME] isRevoke == true RemoteConnectionMap::Handle ");
                     Core::instance_id implementation = info.Implementation();
                     ASSERT(implementation != 0);
 
@@ -1240,15 +1255,18 @@ namespace RPC {
                     }
 
                 } else if (info.InterfaceId() != static_cast<uint32_t>(~0)) {
+			MYLOG("[ILIFETIME] interfaceId != static_cast<uint32_t>(~0) RemoteConnectionMap::Handle ");
 
                     // See if we have something we can return right away, if it has been requested..
                     result = _parent.Acquire(info.ClassName(), info.InterfaceId(), info.VersionId());
 
                     if (result != nullptr) {
+			    MYLOG("Calling RegisterInterface for interfaceId: %04X from Handle", info.InterfaceId());
                         Administrator::Instance().RegisterInterface(baseChannel, result, info.InterfaceId());
                     }
                 }
 
+		MYLOG("[ILIFETIME] EXIT RemoteConnectionMap::Handle ");
                 return (result);
             }
 
@@ -1288,9 +1306,11 @@ namespace RPC {
             void StateChange()
             {
                 // If the connection closes, we need to clean up....
+		MYLOG("[ILIFETIME] State Change");
                 if ((_channel.IsOpen() == false) && (_connectionMap != nullptr)) {
                     _connectionMap->Closed(_id);
                 }
+		MYLOG("[ILIFETIME] State Change");
             }
             bool IsRegistered() const
             {
@@ -1328,8 +1348,11 @@ namespace RPC {
 
             public:
                 void Procedure(Core::IPCChannel& channel, Core::ProxyType<Core::IIPC>& data) override {
+		    MYLOG("[ILIFETIME] Calling procedure in AnnounceHandler");
 
                     Core::ProxyType<AnnounceMessage> message(data);
+		    MYLOG("[ILIFETIME] parsed data as message with id %u in AnnounceHandler", message->Id());
+
 
                     ASSERT(message.IsValid() == true);
                     ASSERT(dynamic_cast<Client*>(&channel) != nullptr);
@@ -1348,6 +1371,7 @@ namespace RPC {
                         jsonDefaultWarningReportingSettings = WarningReporting::WarningReportingUnit::Instance().Defaults();
                         #endif
 
+		        MYLOG("[ILIFETIME] Calling Announce of parent in AnnounceHandler");
                         void* result = _parent.Announce(proxyChannel, message->Parameters(), message->Response());
 
                         message->Response().Set(instance_cast<void*>(result), proxyChannel->Extension().Id(), _parent.ProxyStubPath(), jsonDefaultMessagingSettings, jsonDefaultWarningReportingSettings);
@@ -1519,6 +1543,7 @@ POP_WARNING()
     private:
         void Closed(const Core::ProxyType<Core::IPCChannel>& channel)
         {
+	    MYLOG("[ILIFETIME] Closed Enter");
             Administrator::Proxies deadProxies;
 
             RPC::Administrator::Instance().DeleteChannel(channel, deadProxies);
@@ -1532,6 +1557,7 @@ POP_WARNING()
                 (*loop)->Parent()->Release();
                 loop++;
             }
+	    MYLOG("[ILIFETIME] Closed Exit");
         }
         virtual void* Acquire(const string& /* className */, const uint32_t /* interfaceId */, const uint32_t /* version */)
         {
@@ -1748,6 +1774,7 @@ POP_WARNING()
 
             if (result != nullptr) {
                 Core::ProxyType<Core::IPCChannel> baseChannel(*this);
+                MYLOG("Calling RegisterInterface for interfaceId: %04X from Acquire", interfaceId);
                 Administrator::Instance().RegisterInterface(baseChannel, result, interfaceId);
             }
 

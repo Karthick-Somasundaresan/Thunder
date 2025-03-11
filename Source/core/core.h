@@ -24,6 +24,7 @@
 #error "Please define a MODULE_NAME that describes the binary/library you are building."
 #endif
 
+#include "Mylog.h"
 #include "Module.h"
 #include "Portability.h"
 

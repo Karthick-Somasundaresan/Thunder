@@ -319,45 +319,54 @@ namespace PluginHost
     /* virtual */ Core::hresult Server::Service::Activate(const PluginHost::IShell::reason why)
     {
         Core::hresult result = Core::ERROR_NONE;
+	MYLOG("[ILIFETIME] About to activate callsign %s", PluginHost::Service::Configuration().Callsign.Value().c_str());
 
         Lock();
 
         IShell::state currentState(State());
 
         if (currentState == IShell::state::ACTIVATION) {
+            MYLOG("[ILIFETIME] State ACTIVATION callsign: %s", PluginHost::Service::Configuration().Callsign.Value().c_str());
             Unlock();
             result = Core::ERROR_INPROGRESS;
         }
         else if ((currentState == IShell::state::UNAVAILABLE) || (currentState == IShell::state::DEACTIVATION) || (currentState == IShell::state::DESTROYED) ) {
+            MYLOG("[ILIFETIME] State for callsign %s 1", PluginHost::Service::Configuration().Callsign.Value().c_str());
             Unlock();
             result = Core::ERROR_ILLEGAL_STATE;
         } else if (currentState == IShell::state::HIBERNATED) {
+            MYLOG("[ILIFETIME] State for callsign %s 2", PluginHost::Service::Configuration().Callsign.Value().c_str());
             result = Wakeup(3000);
             Unlock();
         } else if ((currentState == IShell::state::DEACTIVATED) || (currentState == IShell::state::PRECONDITION)) {
 
             // Load the interfaces, If we did not load them yet...
+            MYLOG("[ILIFETIME] State for callsign %s 3", PluginHost::Service::Configuration().Callsign.Value().c_str());
             if (_handler == nullptr) {
                 AcquireInterfaces();
             }
+            MYLOG("[ILIFETIME] State for callsign %s 4", PluginHost::Service::Configuration().Callsign.Value().c_str());
 
             const string callSign(PluginHost::Service::Configuration().Callsign.Value());
             const string className(PluginHost::Service::Configuration().ClassName.Value());
 
             if (_handler == nullptr) {
                 SYSLOG(Logging::Startup, (_T("Loading of plugin [%s]:[%s], failed. Error [%s]"), className.c_str(), callSign.c_str(), ErrorMessage().c_str()));
+            MYLOG("[ILIFETIME] State for callsign %s 5", callSign.c_str());
                 result = Core::ERROR_UNAVAILABLE;
 
                 Unlock();
 
                 // See if the preconditions have been met..
             } else if (_precondition.IsMet() == false) {
+            MYLOG("[ILIFETIME] State for callsign %s 6", callSign.c_str());
                 SYSLOG(Logging::Startup, (_T("Activation of plugin [%s]:[%s], postponed, preconditions have not been met, yet."), className.c_str(), callSign.c_str()));
                 result = Core::ERROR_PENDING_CONDITIONS;
                 _reason = why;
                 State(PRECONDITION);
 
                 if (WPEFramework::Messaging::LocalLifetimeType<Activity, &WPEFramework::Core::System::MODULE_NAME, WPEFramework::Core::Messaging::Metadata::type::TRACING>::IsEnabled() == true) {
+            MYLOG("[ILIFETIME] State for callsign %s 7", callSign.c_str());
                     string feedback;
                     uint8_t index = 1;
                     uint32_t delta(_precondition.Delta(_administrator.SubSystemInfo()));
@@ -384,29 +393,38 @@ namespace PluginHost
             } else {
 
                 // Before we dive into the "new" initialize lets see if this has a pending OOP running, if so forcefully kill it now, no time to wait !
+            MYLOG("[ILIFETIME] State for callsign %s 7", callSign.c_str());
                 if (_lastId != 0) {
                     _administrator.Destroy(_lastId);
+            MYLOG("[ILIFETIME] State for callsign %s 8", callSign.c_str());
                     _lastId = 0;
                 }
 
                 TRACE(Activity, (_T("Activation plugin [%s]:[%s]"), className.c_str(), callSign.c_str()));
+            MYLOG("[ILIFETIME] State for callsign %s 9", callSign.c_str());
 
                 _administrator.Initialize(callSign, this);
+            MYLOG("[ILIFETIME] State for callsign %s 10", callSign.c_str());
                 
                 State(ACTIVATION);
+            MYLOG("[ILIFETIME] State for callsign %s 11", callSign.c_str());
 
                 Unlock();
 
                 REPORT_DURATION_WARNING( { ErrorMessage(_handler->Initialize(this)); }, WarningReporting::TooLongPluginState, WarningReporting::TooLongPluginState::StateChange::ACTIVATION, callSign.c_str());
+            MYLOG("[ILIFETIME] State for callsign %s 12", callSign.c_str());
 
                 if (HasError() == true) {
+            MYLOG("[ILIFETIME] State for callsign %s 13", callSign.c_str());
                     result = Core::ERROR_GENERAL;
 
                     SYSLOG(Logging::Startup, (_T("Activation of plugin [%s]:[%s], failed. Error [%s]"), className.c_str(), callSign.c_str(), ErrorMessage().c_str()));
 
                     if( _administrator.Configuration().LegacyInitialize() == false ) {
+            MYLOG("[ILIFETIME] State for callsign %s 14", callSign.c_str());
                         Deactivate(reason::INITIALIZATION_FAILED);
                     } else {
+            MYLOG("[ILIFETIME] State for callsign %s 15", callSign.c_str());
                         _reason = reason::INITIALIZATION_FAILED;
                         _administrator.Deinitialized(callSign, this);
                         Lock();
@@ -416,47 +434,64 @@ namespace PluginHost
                     }
 
                 } else {
+            MYLOG("[ILIFETIME] State for callsign %s 16", callSign.c_str());
                     const Core::EnumerateType<PluginHost::IShell::reason> textReason(why);
                     const string webUI(PluginHost::Service::Configuration().WebUI.Value());
                     if ((PluginHost::Service::Configuration().WebUI.IsSet()) || (webUI.empty() == false)) {
+            MYLOG("[ILIFETIME] State for callsign %s 17", callSign.c_str());
                         EnableWebServer(webUI, EMPTY_STRING);
                     }
+            MYLOG("[ILIFETIME] State for callsign %s 18", callSign.c_str());
 
                     if (_jsonrpc != nullptr) {
+            MYLOG("[ILIFETIME] State for callsign %s 19", callSign.c_str());
                         _jsonrpc->Activate(this);
                     }
+            MYLOG("[ILIFETIME] State for callsign %s 20", callSign.c_str());
 
                     if (_external.Connector().empty() == false) {
+            MYLOG("[ILIFETIME] State for callsign %s 21", callSign.c_str());
                         uint32_t result = _external.Open(0);
+            MYLOG("[ILIFETIME] State for callsign %s 22", callSign.c_str());
                         if ((result != Core::ERROR_NONE) && (result != Core::ERROR_INPROGRESS)) {
                             TRACE(Trace::Error, (_T("Could not open the external connector for %s"), Callsign().c_str()));
                         }
                     }
+            MYLOG("[ILIFETIME] State for callsign %s 23", callSign.c_str());
 
                     SYSLOG(Logging::Startup, (_T("Activated plugin [%s]:[%s]"), className.c_str(), callSign.c_str()));
                     Lock();
+            MYLOG("[ILIFETIME] State for callsign %s 24", callSign.c_str());
                     State(ACTIVATED);
+            MYLOG("[ILIFETIME] State for callsign %s 25", callSign.c_str());
                     _administrator.Activated(callSign, this);
+            MYLOG("[ILIFETIME] State for callsign %s 26", callSign.c_str());
 
 #if THUNDER_RESTFULL_API
                     _administrator.Notification(_T("{\"callsign\":\"") + callSign + _T("\",\"state\":\"deactivated\",\"reason\":\"") + textReason.Data() + _T("\"}"));
 #endif
 
                     _administrator.Notification(PluginHost::Server::ForwardMessage(callSign, string(_T("{\"state\":\"activated\",\"reason\":\"")) + textReason.Data() + _T("\"}")));
+            MYLOG("[ILIFETIME] State for callsign %s 27", callSign.c_str());
 
                     IStateControl* stateControl = nullptr;
                     if ((Resumed() == true) && ((stateControl = _handler->QueryInterface<PluginHost::IStateControl>()) != nullptr)) {
 
+            MYLOG("[ILIFETIME] State for callsign %s 28", callSign.c_str());
                         stateControl->Request(PluginHost::IStateControl::RESUME);
                         stateControl->Release();
                     }
+            MYLOG("[ILIFETIME] State for callsign %s 29", callSign.c_str());
 
                     Unlock();
                 }
             }
+            MYLOG("[ILIFETIME] State for callsign %s 30", callSign.c_str());
         } else {
+            MYLOG("[ILIFETIME] State for callsign %s 31",  PluginHost::Service::Configuration().Callsign.Value().c_str());
             Unlock();
         }
+            MYLOG("[ILIFETIME] State for callsign %s 32",  PluginHost::Service::Configuration().Callsign.Value().c_str());
 
         return (result);
     }

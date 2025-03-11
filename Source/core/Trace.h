@@ -147,6 +147,17 @@ namespace WPEFramework {
 #endif
 
 #ifdef __DEBUG__
+#define BACKTRACE()                                                                                            \
+    do {                                                                                                        \
+            ASSERT_LOGGER("===== $$ [%d]: BACKTRACE START [%s:%d] \n", TRACE_PROCESS_ID, __FILE__, __LINE__); \
+            std::list<WPEFramework::Core::callstack_info> entries;                                              \
+            DumpCallStack(0, entries);                                                                          \
+            for(const WPEFramework::Core::callstack_info& entry : entries) {                                    \
+                fprintf(stderr, "[%s]:[%s]:[%d]\n", entry.module.c_str(), entry.function.c_str(), entry.line);  \
+            }                                                                                                   \
+            ASSERT_LOGGER("===== $$ [%d]: BACKTRACE END [%s:%d] \n", TRACE_PROCESS_ID, __FILE__, __LINE__); \
+            fflush(stderr);                                                                                     \
+        } while(0)           
 
 #define ASSERT(expr)                                                                                            \
     do {                                                                                                        \

@@ -26,6 +26,8 @@ add_library(${TARGET} SHARED
         JSONRPCLink.cpp
         )
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=unused-variable")
+
 find_package(ZLIB REQUIRED)
 
 set(PUBLIC_HEADERS
@@ -50,6 +52,8 @@ target_link_libraries(${TARGET}
           ${NAMESPACE}Core::${NAMESPACE}Core
           ${NAMESPACE}Cryptalgo::${NAMESPACE}Cryptalgo
         )
+
+target_compile_options(${TARGET} PUBLIC "-Werror=unused-variable")
 
 target_compile_definitions(${TARGET} PRIVATE WEBSOCKET_EXPORTS)
 

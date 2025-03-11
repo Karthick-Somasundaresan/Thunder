@@ -134,14 +134,17 @@ namespace Core {
         void StateChange() override
         {
             // Do not forget to call the base...
+	    MYLOG("[ILIFETIME] State Change");
             BaseClass::StateChange();
 
             StateChange(TemplateIntToType<LISTENING>());
+	    MYLOG("[ILIFETIME] State Change END");
         }
 
     private:
         void StateChange(const TemplateIntToType<true>&)
         {
+	    MYLOG("[ILIFETIME] State Change");
             if ((BaseClass::Source().HasError() == true) && (BaseClass::Source().IsListening() == false)) {
 
                 TRACE_L1("Error on socket. Not much we can do except for closing up, Try to recover. (%d)", BaseClass::Source().State());
@@ -163,14 +166,17 @@ namespace Core {
                     BaseClass::Source().Listen();
                 }
             }
+	    MYLOG("[ILIFETIME] State Change END");
         }
         void StateChange(const TemplateIntToType<false>&)
         {
+	    MYLOG("[ILIFETIME] State Change");
             if (BaseClass::Source().HasError() == true) {
                 TRACE_L1("Error on socket. Not much we can do except for closing up, Try to recover. (%d)", BaseClass::Source().State());
                 // In case on an error, not much more we can do then close up..
                 BaseClass::Source().Close(0);
             }
+	    MYLOG("[ILIFETIME] State Change END");
         }
 
     private:

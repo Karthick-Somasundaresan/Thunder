@@ -225,9 +225,14 @@ namespace Core {
 
                 ASSERT(_container != nullptr);
 
-                _offset += _container->GetNumber<TYPENAME>(_offset, result);
+/*                _offset += _container->GetNumber<TYPENAME>(_offset, result);
                 buffer = &(_container->operator[](_offset));
-
+*/
+		SIZE_CONTEXT bufferLength = _container->GetNumber<TYPENAME>(_offset, result);
+                if (bufferLength > 0){
+                    _offset += bufferLength;
+                    buffer = &(_container->operator[](_offset));
+                }
                 return (result);
             }
             template <typename TYPENAME>

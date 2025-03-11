@@ -1365,7 +1365,8 @@ namespace WPEFramework {
             			{
                 			_adminLock.Lock();
                 			ASSERT(_subscriptions.find(eventName) != _subscriptions.end());
-                			auto iter = _subscriptions.erase(eventName);
+					int a = 10;
+                			_subscriptions.erase(eventName);
                 			_adminLock.Unlock();
                 			return Base::Unsubscribe(waitTime, eventName);
             			}

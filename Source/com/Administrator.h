@@ -64,11 +64,13 @@ namespace RPC {
                 : _interfaceId(id)
                 , _interface(object)
                 , _referenceCount(1 | (object->AddRef() == Core::ERROR_COMPOSIT_OBJECT ? 0x80000000 : 0)) {
+			ENTER
                 
                 // Check if this is a "Composit" object to which the IUnknown points. Composit means 
                 // that the object is owned by another object that controls its lifetime and that 
                 // object will handle the lifetime of this object. It will be released anyway, 
                 // no-recovery needed.
+		MYLOG("interface Id: %04X referenceCount: %08X", _interfaceId, _referenceCount);
                 object->Release();
             }
             ~RecoverySet() = default;
@@ -125,6 +127,7 @@ namespace RPC {
 
             ProxyStub::UnknownProxy* CreateProxy(const Core::ProxyType<Core::IPCChannel>& channel, const Core::instance_id& implementation, const bool remoteRefCounted) override
             {
+		MYLOG("Creating proxy for %04x refcounted: %d", implementation, remoteRefCounted);
                 return (new PROXY(channel, implementation, remoteRefCounted))->Administration();
             }
         };
@@ -168,13 +171,16 @@ namespace RPC {
             _adminLock.Lock();
 
 #ifdef __DEBUG__
+            TRACE_L1("Announce for interface %04x !!!", ACTUALINTERFACE::ID);
             if (_stubs.find(ACTUALINTERFACE::ID) != _stubs.end()) {
-                TRACE_L1("Interface (stub) %d, gets registered multiple times !!!", ACTUALINTERFACE::ID);
+                TRACE_L1("Interface (stub) %04x, gets registered multiple times !!!", ACTUALINTERFACE::ID);
             }
             else if (_proxy.find(ACTUALINTERFACE::ID) != _proxy.end()) {
-                TRACE_L1("Interface (proxy) %d, gets registered multiple times !!!", ACTUALINTERFACE::ID);
+                TRACE_L1("Interface (proxy) %04x, gets registered multiple times !!!", ACTUALINTERFACE::ID);
             }
 #endif
+	    //BACKTRACE();
+	    MYLOG("ANNOUNCE: %04X", ACTUALINTERFACE::ID);
             _stubs.insert(std::pair<uint32_t, ProxyStub::UnknownStub*>(ACTUALINTERFACE::ID, new STUB()));
             _proxy.insert(std::pair<uint32_t, IMetadata*>(ACTUALINTERFACE::ID, new ProxyType<PROXY>()));
 
@@ -184,6 +190,7 @@ namespace RPC {
         template <typename ACTUALINTERFACE>
         void Recall()
         {
+            ENTER
             _adminLock.Lock();
 
             std::map<uint32_t, ProxyStub::UnknownStub*>::iterator stub(_stubs.find(ACTUALINTERFACE::ID));
@@ -225,6 +232,7 @@ namespace RPC {
         ProxyStub::UnknownProxy* ProxyInstance(const Core::ProxyType<Core::IPCChannel>& channel, const Core::instance_id& impl, const bool outbound, ACTUALINTERFACE*& base)
         {
             void* proxyInterface;
+            MYLOG("ProxyInstance for instance_id: %04x interfaceId: %04x outbound:%d", impl, ACTUALINTERFACE::ID, outbound);
             ProxyStub::UnknownProxy* result = ProxyInstance(channel, impl, outbound, ACTUALINTERFACE::ID, proxyInterface);
             base = reinterpret_cast<ACTUALINTERFACE*>(proxyInterface);
             return (result);
@@ -256,11 +264,14 @@ namespace RPC {
         }
         void RegisterInterface(Core::ProxyType<Core::IPCChannel>& channel, const void* source, const uint32_t id)
         {
+            ENTER
+            //BACKTRACE();
             RegisterUnknownInterface(channel, Convert(const_cast<void*>(source), id), id);
         }
 
         void UnregisterInterface(Core::ProxyType<Core::IPCChannel>& channel, const Core::IUnknown* source, const uint32_t interfaceId, const uint32_t dropCount)
         {
+            ENTER
             _adminLock.Lock();
 
             ReferenceMap::iterator index(_channelReferenceMap.find(channel->LinkId()));

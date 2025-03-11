@@ -154,7 +154,9 @@ namespace RPC {
 
         if (index != _stubs.end()) {
             uint32_t methodId(message->Parameters().MethodId());
+	   MYLOG("[ILIFETIME] Handle");
             REPORT_DURATION_WARNING({ index->second->Handle(methodId, channel, message); },  WarningReporting::TooLongInvokeRPC, interfaceId, methodId);
+	   MYLOG("[ILIFETIME] Handle END");
         } else {
             // Oops this is an unknown interface, Do not think this could happen.
             TRACE_L1("Unknown interface. %d", interfaceId);
@@ -265,19 +267,24 @@ namespace RPC {
             }
 
             if (result == nullptr) {
+		    MYLOG("Finding proxy for interface id :%04x", id);
                 std::map<uint32_t, IMetadata*>::iterator factory(_proxy.find(id));
 
                 if (factory != _proxy.end()) {
 
+		MYLOG("Found a factory. Asking the factory to create Proxy Object");
                     result = factory->second->CreateProxy(channel, impl, outbound);
+		MYLOG("created Proxy Object");
 
                     ASSERT(result != nullptr);
 
                     // Register it as it is remotely registered :-)
                     _channelProxyMap[channel->LinkId()].push_back(result);
+		    MYLOG("Pushed it into channel proxy map.");
 
                     // This will increment the reference count to 2 (one in the ChannelProxyMap and one in the QueryInterface ).
                     interface = result->QueryInterface(id);
+		    MYLOG("Query Interface for id");
                     ASSERT(interface != nullptr);
 
                 } else {
@@ -355,6 +362,7 @@ namespace RPC {
 
     void Administrator::DeleteChannel(const Core::ProxyType<Core::IPCChannel>& channel, Proxies& pendingProxies)
     {
+	   MYLOG("[ILIFETIME] DeleteChannel ENTER");
         _adminLock.Lock();
 
         ReferenceMap::iterator remotes(_channelReferenceMap.find(channel->LinkId()));
@@ -399,6 +407,7 @@ namespace RPC {
         }
 
         _adminLock.Unlock();
+	   MYLOG("[ILIFETIME] DeleteChannel EXIT.");
     }
 
     /* static */ Administrator& Job::_administrator= Administrator::Instance();

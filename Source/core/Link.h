@@ -175,7 +175,9 @@ namespace Core {
             // Signal a state change, Opened, Closed or Accepted
             void StateChange() override
             {
+	    	MYLOG("[ILIFETIME] State Change");
                 _parent.StateChange();
+	    	MYLOG("[ILIFETIME] State Change END");
             }
 
         private:
@@ -271,6 +273,7 @@ POP_WARNING()
         uint16_t SendData(uint8_t* dataFrame, const uint16_t maxSendSize)
         {
             // Serialize Response
+	    MYLOG("Sending data with Maxsize: %d", maxSendSize);
             return (_serializerImpl.Serialize(dataFrame, maxSendSize));
         }
         uint16_t ReceiveData(uint8_t* dataFrame, const uint16_t receivedSize)

@@ -166,6 +166,7 @@ namespace Core {
 
             uint16_t Deserialize(const uint8_t stream[], const uint16_t maxLength)
             {
+		MYLOG("[ILIFETIME] Deserialize ENTER");
                 uint16_t result = 0;
 
                 while (result < maxLength) {
@@ -222,6 +223,7 @@ namespace Core {
                             if (_current != nullptr) {
                                 IMessage* ready = _current;
                                 _current = nullptr;
+				MYLOG("[ILIFETIME] calling deserialized ");
                                 Deserialized(*ready);
                             }
                             _offset = 0;
@@ -229,6 +231,7 @@ namespace Core {
                         }
                     }
                 }
+		MYLOG("[ILIFETIME] Deserialize EXIT");
                 return (result);
             }
 
@@ -605,31 +608,37 @@ POP_WARNING()
             ProxyType<IIPCServer> ReceivedMessage(const Core::ProxyType<IMessage>& rhs, Core::ProxyType<IIPC>& inbound)
             {
                 ProxyType<IIPCServer> procedure;
+		MYLOG("[ILIFETIME] ENTER");
 
                 _lock.Lock();
 
                 if ((_outbound.IsValid() == true) && (_outbound->IResponse() == rhs)) {
+			MYLOG("[ILIFETIME] It is outbound and IResponse == received Imessage");
 
                     ASSERT(_callback != nullptr);
 
                     ProxyType<IIPC> handledObject(_outbound);
 
                     _outbound.Release();
+		    MYLOG("[ILIFETIME] Dispatching a job");
                     _callback->Dispatch(*handledObject);
                     _callback = nullptr;
                 }
                 // If this is *NOT* the outbound call, it is inbound and thus it must have been registered
                 else if (_inbound.IsValid() == true) {
 
+		    MYLOG("[ILIFETIME] Dispatching a job");
                     std::map<uint32_t, ProxyType<IIPCServer>>::iterator index(_handlers.find(_inbound->Label()));
 
 					ASSERT(index != _handlers.end());
 
                     if (index != _handlers.end()) {
+                        MYLOG("[ILIFETIME] Found handler to handle the incoming frames. [%d]", _inbound->Label());
                         procedure = (*index).second;
                         inbound = _inbound;
                     } else {
                         TRACE_L1("No handler defined to handle the incoming frames. [%d]", _inbound->Label());
+                        MYLOG("[ILIFETIME] No handler defined to handle the incoming frames. [%d]", _inbound->Label());
                     }
 
                     _inbound.Release();
@@ -638,6 +647,7 @@ POP_WARNING()
                 }
 
                 _lock.Unlock();
+                MYLOG("[ILIFETIME] EXIT");
 
                 return (procedure);
             }
@@ -823,6 +833,7 @@ POP_WARNING()
             // Notification of a channel state change..
             void StateChange() override
             {
+	    	MYLOG("[ILIFETIME] State Change");
                 if (_parent.Source().IsOpen() == false) {
                     // Whatever s hapening, Flush what we were doing..
                     _parent.Abort();
@@ -830,6 +841,7 @@ POP_WARNING()
                 }
 
                 _parent.StateChange();
+		MYLOG("[ILIFETIME] Calling statechange End");
             }
 
         private:
@@ -928,7 +940,9 @@ POP_WARNING()
         }
         virtual void StateChange()
         {
+	    MYLOG("[ILIFETIME] State Change");
             __StateChange();
+	    MYLOG("[ILIFETIME] State Change END");
         }
 
     private:

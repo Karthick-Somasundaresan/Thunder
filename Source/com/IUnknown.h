@@ -522,6 +522,7 @@ namespace ProxyStub {
                 _unknown.AddRef();
                 result = static_cast<Core::IUnknown*>(this);
             } else {
+		MYLOG("Calling RemoteInterface from QueryInterface of IUnknown for interfaceNumber: %04X", interfaceNumber);
                 result = _unknown.RemoteInterface(interfaceNumber);
             }
 

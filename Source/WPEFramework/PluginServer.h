@@ -4172,6 +4172,7 @@ POP_WARNING()
             // Whenever there is  a state change on the link, it is reported here.
             void StateChange()
             {
+		MYLOG("[ILIFETIME] statechange");
                 TRACE(Activity, (_T("State change on [%d] to [%s]"), Id(), (IsSuspended() ? _T("SUSPENDED") : (IsUpgrading() ? _T("UPGRADING") : (IsWebSocket() ? _T("WEBSOCKET") : _T("WEBSERVER"))))));
 
                 // If we are closing (or closed) do the clean up

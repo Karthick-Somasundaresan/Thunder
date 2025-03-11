@@ -508,6 +508,7 @@ namespace RPC {
     }
 
     void CommunicatorClient::StateChange() /* override */ {
+		MYLOG("[ILIFETIME] State Change");
         BaseClass::StateChange();
 
         if (BaseClass::Source().IsOpen()) {
@@ -529,8 +530,10 @@ namespace RPC {
                 }
             }
         } else {
+		MYLOG("[ILIFETIME] State Change");
             TRACE_L1("Connection to the server is down");
         }
+		MYLOG("[ILIFETIME] State Change");
     }
 
     /* virtual */ void CommunicatorClient::Dispatch(Core::IIPC& element)

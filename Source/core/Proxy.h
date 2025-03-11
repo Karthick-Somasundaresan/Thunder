@@ -29,6 +29,7 @@
 #include "StateTrigger.h"
 #include "Sync.h"
 #include "TypeTraits.h"
+#include "Mylog.h"
 
 // ---- Referenced classes and types ----
 
@@ -459,7 +460,13 @@ POP_WARNING()
             ProxyType<CONTEXT>& operator=(const ProxyType<DERIVEDTYPE>& rhs)
             {
                 // If we already have one, lets remove the one we got first
-                if (_refCount != nullptr) _refCount->Release();
+		MYLOG("[ILIFETIME] copyConstruct Derived: %s", typeid(DERIVEDTYPE).name());
+                if (_refCount != nullptr){ 
+			MYLOG("[ILIFETIME] Brief release of Derived Type: %s", typeid(DERIVEDTYPE).name());
+			_refCount->Release();
+		} else {
+			MYLOG("[ILIFETIME] _refCount was nullptr previously DERIVED Type");
+		}
 
                 CopyConstruct<DERIVEDTYPE>(rhs, TemplateIntToType<Core::TypeTraits::same_or_inherits<CONTEXT, DERIVEDTYPE>::value>());
 
@@ -469,7 +476,13 @@ POP_WARNING()
             ProxyType<CONTEXT>& operator=(const ProxyType<CONTEXT>& rhs)
             {
                 // If we already have one, lets remove the one we got first
-                if (_refCount != nullptr) _refCount->Release();
+		MYLOG("[ILIFETIME] copyConstruct CONTEXT: %s", typeid(CONTEXT).name());
+                if (_refCount != nullptr){
+			MYLOG("[ILIFETIME] Brief release of CONTEXT Type: %s", typeid(CONTEXT).name());
+		       	_refCount->Release();
+		} else {
+			MYLOG("[ILIFETIME] _refCount was nullptr previously CONTEXT Type");
+		}
 
                 CopyConstruct<CONTEXT>(rhs, TemplateIntToType<Core::TypeTraits::same_or_inherits<CONTEXT, CONTEXT>::value>());
 

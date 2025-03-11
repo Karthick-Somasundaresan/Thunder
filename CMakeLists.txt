@@ -83,6 +83,7 @@ else()
     message(FATAL_ERROR "Invalid CMAKE_BUILD_TYPE: '${CMAKE_BUILD_TYPE}'")
 endif()
 
+
 # Remove optimization flags added by the build system
 string(REGEX REPLACE "(-g[0123])" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 string(REGEX REPLACE "(-g[0123])" "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
@@ -94,6 +95,13 @@ string(REGEX REPLACE "\\-\\g$" "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 #         https://www.redhat.com/en/blog/enhance-application-security-fortifysource
 string(REGEX REPLACE "-D_FORTIFY_SOURCE=[0-3]" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 string(REGEX REPLACE "-D_FORTIFY_SOURCE=[0-3]" "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    message(STATUS "KARTHICK in If CMAKE_BUILD_TYPE: '${CMAKE_BUILD_TYPE}'")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=unused-variable")
+else()
+    message(STATUS "KARTHICK in Else CMAKE_BUILD_TYPE: '${CMAKE_BUILD_TYPE}'")
+endif()
 
 # make sure others can make use of the JSON creation tools as well!!!
 configure_file( "${CMAKE_SOURCE_DIR}/cmake/project.cmake.in"

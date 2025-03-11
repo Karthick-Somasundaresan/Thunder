@@ -57,6 +57,7 @@ namespace ProxyStub {
                 // This is an external referenced interface that we handed out, so it should
                 // be registered. Lets unregister this reference, it is dropped
                 // Dropping the ReceoverSey, if applicable
+		MYLOG("[ILIFETIME] UnregisterInterface for %04X dropReleases: %u\n", InterfaceId(),dropReleases);
                 RPC::Administrator::Instance().UnregisterInterface(channel, implementation, InterfaceId(), dropReleases);
 
                 do {
@@ -67,6 +68,7 @@ namespace ProxyStub {
                 ASSERT(dropReleases == 0);
 
                 response.Number<uint32_t>(result);
+		MYLOG("[ILIFETIME] end of Release");
                 break;
             }
             case 2: {
@@ -79,6 +81,7 @@ namespace ProxyStub {
                 response.Number<Core::instance_id>(RPC::instance_cast<void*>(newInterface));
 
                 if (newInterface != nullptr) {
+                    MYLOG("Calling RegisterInterface from IUnknown Handle QueryInterface");
                     RPC::Administrator::Instance().RegisterInterface(channel, newInterface, newInterfaceId);
                 }
 

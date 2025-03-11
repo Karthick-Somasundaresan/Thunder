@@ -61,6 +61,7 @@ add_library(${TARGET} SHARED
 #TODO: Remove all non public headers from this list,
 # All the interface headers are here, these will be installed to staging
 set(PUBLIC_HEADERS
+	Mylog.h
         ASN1.h
         DoorBell.h
         Config.h

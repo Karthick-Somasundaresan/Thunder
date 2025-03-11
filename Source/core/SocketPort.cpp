@@ -1243,7 +1243,9 @@ namespace WPEFramework {
             // done on our request, or closed from the other side...
             m_State &= SHUTDOWN;
 
+	   MYLOG("[ILIFETIME] State Change");
             StateChange();
+	   MYLOG("[ILIFETIME] State Change END");
 
             m_State &= (~SHUTDOWN);
 
