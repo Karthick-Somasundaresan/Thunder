@@ -454,6 +454,7 @@ namespace RPC {
     uint32_t CommunicatorClient::Open(const uint32_t waitTime)
     {
         ASSERT(BaseClass::IsOpen() == false);
+        MYLOG("Start of CommunicatorClient::Open");
         _announceEvent.ResetEvent();
 
         //do not set announce parameters, we do not know what side will offer the interface
@@ -464,6 +465,7 @@ namespace RPC {
         if ((result == Core::ERROR_NONE) && (_announceEvent.Lock(waitTime) != Core::ERROR_NONE)) {
             result = Core::ERROR_OPENING_FAILED;
         }
+        MYLOG("END of CommunicatorClient::Open");
 
         return (result);
     }
@@ -539,6 +541,7 @@ namespace RPC {
     /* virtual */ void CommunicatorClient::Dispatch(Core::IIPC& element)
     {
         // Message delivered and responded on....
+        MYLOG("Start of CommunicatorClient::Dispatch");
         RPC::AnnounceMessage* announceMessage = static_cast<RPC::AnnounceMessage*>(&element);
 
         ASSERT(dynamic_cast<RPC::AnnounceMessage*>(&element) != nullptr);
@@ -563,6 +566,7 @@ namespace RPC {
 
         // Set event so WaitForCompletion() can continue.
         _announceEvent.SetEvent();
+        MYLOG("End of CommunicatorClient::Dispatch");
     }
 
     //We may eliminate the following statement when switched to C++17 compiler
