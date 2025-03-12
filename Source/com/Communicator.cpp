@@ -525,12 +525,15 @@ namespace RPC {
 
     void CommunicatorClient::StateChange() /* override */ {
         ENTER
-		MYLOG("[ILIFETIME] State Change");
+		MYLOG("[ILIFETIME] calling CommunicatorClient BaseClass::State Change");
         BaseClass::StateChange();
+		MYLOG("[ILIFETIME] AFTER CommunicatorClient BaseClass::State Change");
 
         if (BaseClass::Source().IsOpen()) {
             TRACE_L1("Invoking the Announce message to the server. %d", __LINE__);
+            MYLOG("Invoking the Announce message to the server. ");
             uint32_t result = Invoke<RPC::AnnounceMessage>(Core::ProxyType<RPC::AnnounceMessage>(_announceMessage), this);
+            MYLOG("AFTER Invoking the Announce message to the server. ");
 
             if (result != Core::ERROR_NONE) {
                 TRACE_L1("Error during invoke of AnnounceMessage: %d", result);
