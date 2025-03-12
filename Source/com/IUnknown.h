@@ -481,6 +481,7 @@ namespace ProxyStub {
         }
         uint32_t Invoke(Core::ProxyType<RPC::InvokeMessage>& message, const uint32_t waitTime = RPC::CommunicationTimeOut) const
         {
+            MYTRACE
             return (_unknown.Invoke(message, waitTime));
         }
         void* Interface(const Core::instance_id& implementation, const uint32_t id) const

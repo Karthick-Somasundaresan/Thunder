@@ -654,6 +654,7 @@ POP_WARNING()
 
             void SetOutbound(const Core::ProxyType<IIPC>& outbound, IDispatchType<IIPC>* callback)
             {
+                ENTER
                 _lock.Lock();
 
                 ASSERT((outbound.IsValid() == true) && (callback != nullptr));
@@ -663,6 +664,7 @@ POP_WARNING()
                 _callback = callback;
 
                 _lock.Unlock();
+                EXIT
             }
 
             bool AbortOutbound()
@@ -744,19 +746,23 @@ POP_WARNING()
         template <typename ACTUALELEMENT>
         uint32_t Invoke(const ProxyType<ACTUALELEMENT>& command, IDispatchType<IIPC>* completed)
         {
+            MYTRACE
             return (Execute(Core::ProxyType<IIPC>(command), completed));
         }
         template <typename ACTUALELEMENT>
         uint32_t Invoke(const ProxyType<ACTUALELEMENT>& command, const uint32_t waitTime)
         {
+            MYTRACE
             return (Execute(Core::ProxyType<IIPC>(command), waitTime));
         }
         uint32_t Invoke(const ProxyType<Core::IIPC>& command, IDispatchType<IIPC>* completed)
         {
+            MYTRACE
             return (Execute(command, completed));
         }
         uint32_t Invoke(const ProxyType<Core::IIPC>& command, const uint32_t waitTime)
         {
+            MYTRACE
             return (Execute(command, waitTime));
         }
 
@@ -978,6 +984,7 @@ POP_WARNING()
             } else if (_link.IsOpen() == true) {
                 // We need to accept a CONST object to avoid an additional object creation
                 // proxy casted objects.
+                MYTRACE
                 _administration.SetOutbound(command, completed);
 
                 // Send out the
@@ -1001,6 +1008,7 @@ POP_WARNING()
 
                 // We need to accept a CONST object to avoid an additional object creation
                 // proxy casted objects.
+                MYTRACE
                 _administration.SetOutbound(command, &sink);
 
                 // Send out the
