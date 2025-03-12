@@ -273,6 +273,7 @@ POP_WARNING()
         uint16_t SendData(uint8_t* dataFrame, const uint16_t maxSendSize)
         {
             // Serialize Response
+        BACKTRACE();
 	    MYLOG("Sending data with Maxsize: %d", maxSendSize);
             return (_serializerImpl.Serialize(dataFrame, maxSendSize));
         }
