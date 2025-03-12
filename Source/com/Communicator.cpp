@@ -412,6 +412,7 @@ namespace RPC {
         , _announceEvent(false, true)
         , _connectionId(~0)
     {
+        ENTER
         _announceMessage.AddRef();
 
         CreateFactory<RPC::AnnounceMessage>(1);
@@ -419,6 +420,7 @@ namespace RPC {
 
         Register(RPC::InvokeMessage::Id(), Core::ProxyType<Core::IIPCServer>(Core::ProxyType<InvokeHandler>::Create()));
         Register(RPC::AnnounceMessage::Id(), Core::ProxyType<Core::IIPCServer>(Core::ProxyType<AnnounceHandler>::Create(*this)));
+        EXIT
     }
     CommunicatorClient::CommunicatorClient(
         const Core::NodeId& remoteNode,
@@ -428,6 +430,7 @@ namespace RPC {
         , _announceEvent(false, true)
         , _connectionId(~0)
     {
+        ENTER
         _announceMessage.AddRef();
 
         CreateFactory<RPC::AnnounceMessage>(1);
@@ -435,11 +438,13 @@ namespace RPC {
 
         BaseClass::Register(RPC::InvokeMessage::Id(), handler);
         BaseClass::Register(RPC::AnnounceMessage::Id(), Core::ProxyType<Core::IIPCServer>(Core::ProxyType<AnnounceHandler>::Create(*this)));
+        EXIT
     }
     POP_WARNING();
 
     CommunicatorClient::~CommunicatorClient()
     {
+        ENTER
         BaseClass::Close(Core::infinite);
 
         BaseClass::Unregister(RPC::InvokeMessage::Id());
@@ -449,10 +454,12 @@ namespace RPC {
         DestroyFactory<RPC::AnnounceMessage>();
 
         _announceMessage.CompositRelease();
+        EXIT
     }
 
     uint32_t CommunicatorClient::Open(const uint32_t waitTime)
     {
+        ENTER
         ASSERT(BaseClass::IsOpen() == false);
         MYLOG("Start of CommunicatorClient::Open");
         _announceEvent.ResetEvent();
@@ -466,12 +473,14 @@ namespace RPC {
             result = Core::ERROR_OPENING_FAILED;
         }
         MYLOG("END of CommunicatorClient::Open");
+        EXIT
 
         return (result);
     }
 
     uint32_t CommunicatorClient::Open(const uint32_t waitTime, const string& className, const uint32_t interfaceId, const uint32_t version)
     {
+        ENTER
         ASSERT(BaseClass::IsOpen() == false);
         _announceEvent.ResetEvent();
 
@@ -482,12 +491,14 @@ namespace RPC {
         if ((result == Core::ERROR_NONE) && (_announceEvent.Lock(waitTime) != Core::ERROR_NONE)) {
             result = Core::ERROR_OPENING_FAILED;
         }
+        EXIT
 
         return (result);
     }
 
     uint32_t CommunicatorClient::Open(const uint32_t waitTime, const uint32_t interfaceId, void* implementation, const uint32_t exchangeId)
     {
+        ENTER
         ASSERT(BaseClass::IsOpen() == false);
         _announceEvent.ResetEvent();
 
@@ -501,15 +512,19 @@ namespace RPC {
             result = Core::ERROR_OPENING_FAILED;
         }
 
+        EXIT
         return (result);
     }
 
     uint32_t CommunicatorClient::Close(const uint32_t waitTime)
     {
+        ENTER
+        EXIT
         return (BaseClass::Close(waitTime));
     }
 
     void CommunicatorClient::StateChange() /* override */ {
+        ENTER
 		MYLOG("[ILIFETIME] State Change");
         BaseClass::StateChange();
 
@@ -536,6 +551,7 @@ namespace RPC {
             TRACE_L1("Connection to the server is down");
         }
 		MYLOG("[ILIFETIME] State Change");
+        EXIT
     }
 
     /* virtual */ void CommunicatorClient::Dispatch(Core::IIPC& element)

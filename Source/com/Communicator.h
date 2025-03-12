@@ -1597,6 +1597,7 @@ POP_WARNING()
         public:
             void Procedure(IPCChannel& channel, Core::ProxyType<Core::IIPC>& data) override
             {
+                ENTER
                 // Oke, see if we can reference count the IPCChannel
                 Core::ProxyType<Core::IPCChannel> refChannel(channel);
                 Core::ProxyType<RPC::AnnounceMessage> message(data);
@@ -1611,6 +1612,7 @@ POP_WARNING()
                 message->Response().Implementation(implementation);
 
                 channel.ReportResponse(data);
+                EXIT
             }
 
         private:
@@ -1658,6 +1660,7 @@ POP_WARNING()
         template <typename INTERFACE>
         INTERFACE* Acquire(const uint32_t waitTime, const string& className, const uint32_t versionId)
         {
+            ENTER
             INTERFACE* result(nullptr);
 
             if (BaseClass::IsOpen() == true) {
@@ -1681,6 +1684,7 @@ POP_WARNING()
                     }
                 }
             }
+            EXIT
 
             return (result);
         }
@@ -1688,6 +1692,7 @@ POP_WARNING()
         inline uint32_t Offer(INTERFACE* offer, const uint32_t version = static_cast<uint32_t>(~0), const uint32_t waitTime = CommunicationTimeOut)
         {
             uint32_t result(Core::ERROR_NONE);
+            ENTER
 
             if (BaseClass::IsOpen() == true) {
 
@@ -1721,12 +1726,14 @@ POP_WARNING()
                 baseChannel->CustomData(nullptr);
             }
 
+            EXIT
             return (result);
         }
         template <typename INTERFACE>
         inline uint32_t Revoke(INTERFACE* offer, const uint32_t version = static_cast<uint32_t>(~0), const uint32_t waitTime = CommunicationTimeOut)
         {
             uint32_t result(Core::ERROR_NONE);
+            ENTER
 
             if (BaseClass::IsOpen() == true) {
 
@@ -1761,6 +1768,7 @@ POP_WARNING()
                 baseChannel->CustomData(nullptr);
             }
 
+            EXIT
             return (result);
         }
 
@@ -1769,6 +1777,7 @@ POP_WARNING()
         virtual void* Acquire(const string& className, const uint32_t interfaceId, const uint32_t versionId)
         {
             Core::Library emptyLibrary;
+            ENTER
             // Allright, respond with the interface.
             void* result = Core::ServiceAdministrator::Instance().Instantiate(emptyLibrary, className.c_str(), versionId, interfaceId);
 
@@ -1777,6 +1786,7 @@ POP_WARNING()
                 MYLOG("Calling RegisterInterface for interfaceId: %04X from Acquire", interfaceId);
                 Administrator::Instance().RegisterInterface(baseChannel, result, interfaceId);
             }
+            EXIT
 
             return (result);
         }
@@ -1790,6 +1800,7 @@ POP_WARNING()
         inline INTERFACE* WaitForCompletion(const uint32_t waitTime)
         {
             INTERFACE* result = nullptr;
+            ENTER
 
             ASSERT(_announceMessage.Parameters().InterfaceId() == INTERFACE::ID);
             ASSERT(_announceMessage.Parameters().Implementation() == 0);
@@ -1808,11 +1819,15 @@ POP_WARNING()
                 }
             }
 
+            EXIT
             return (result);
         }
         inline bool WaitForCompletion(const uint32_t waitTime)
         {
             // Lock event until Dispatch() sets it.
+            ENTER
+            MYTRACE
+            EXIT
             return (_announceEvent.Lock(waitTime) == Core::ERROR_NONE);
         }
         virtual void Dispatch(Core::IIPC& element);
