@@ -807,6 +807,7 @@ POP_WARNING()
             bool SendResponse(Core::ProxyType<IIPC>& inbound)
             {
                 ASSERT(inbound.IsValid() == true);
+                MYTRACE
 
                 // This is an inbound call, Report what we have processed !!!
                 return (BaseClass::Submit(inbound->IResponse()));
@@ -816,12 +817,15 @@ POP_WARNING()
             void Received(Core::ProxyType<IMessage>& message) override
             {
 
+                ENTER
                 Core::ProxyType<IIPC> inbound;
                 ProxyType<IIPCServer> handler(_factory.ReceivedMessage(message, inbound));
 
                 if (handler.IsValid() == true) {
+                    MYTRACE
                     _parent.CallProcedure(handler, inbound);
                 }
+                EXIT
             }
 
             // Notification of a Response send.
@@ -934,6 +938,7 @@ POP_WARNING()
         uint32_t ReportResponse(Core::ProxyType<IIPC>& inbound) override
         {
             // We got the event, start the invoke, wait for the event to be set again..
+            MYTRACE
             _link.SendResponse(inbound);
 
             return (Core::ERROR_NONE);

@@ -50,6 +50,7 @@ namespace Core {
         public:
             void Submit(const Core::ProxyType<OUTBOUND>& element)
             {
+                ENTER
                 _lock.Lock();
 
                 _queue.Add(const_cast<Core::ProxyType<OUTBOUND>&>(element));
@@ -59,15 +60,18 @@ namespace Core {
                     OUTBOUND::Serializer::Submit(*element);
                     _lock.Unlock();
 
+                    MYTRACE
                     _parent.Trigger();
                 } else {
                     _lock.Unlock();
                 }
+                EXIT
             }
 
         private:
             void Serialized(const typename OUTBOUND::BaseElement& element) override
             {
+                ENTER
                 _lock.Lock();
 
                 ASSERT(_queue.Count() > 0);
@@ -81,13 +85,16 @@ namespace Core {
 
                 // See if we have something else to push
                 if (_queue.Count() > 0) {
+                    MYTRACE
                     OUTBOUND::Serializer::Submit(*(_queue[0]));
                     _lock.Unlock();
 
+                    MYTRACE
                     _parent.Trigger();
                 } else {
                     _lock.Unlock();
                 }
+                EXIT
             }
 
         private:
@@ -238,9 +245,11 @@ POP_WARNING()
         // Submit an OUTBOUND object into the channel
         bool Submit(const Core::ProxyType<OUTBOUND>& element)
         {
+            ENTER
             if (_channel.IsOpen() == true) {
                 _serializerImpl.Submit(element);
             }
+            EXIT
 
             return (true);
         }

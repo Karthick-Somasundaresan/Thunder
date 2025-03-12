@@ -1083,6 +1083,7 @@ namespace WPEFramework {
                 }
                 else if (IsOpen()) {
                     if (((flagsSet & POLLOUT) != 0) || (breakIssued == true)) {
+                        MYTRACE
                         Write();
                     }
                     if ((flagsSet & POLLIN) != 0) {

@@ -435,6 +435,7 @@ namespace RPC {
 
         static void Invoke(Core::ProxyType<Core::IPCChannel>& channel, Core::ProxyType<Core::IIPC>& data)
         {
+            ENTER
             Core::ProxyType<InvokeMessage> message(data);
             ASSERT(message.IsValid() == true);
             if (message->Parameters().IsValid() == false) {
@@ -442,8 +443,10 @@ namespace RPC {
             }
             else {
                 _administrator.Invoke(channel, message);
+                MYTRACE
                 channel->ReportResponse(data);
             }
+            EXIT
         }
 
     private:
