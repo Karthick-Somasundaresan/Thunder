@@ -550,10 +550,9 @@ namespace RPC {
                 }
             }
         } else {
-		MYLOG("[ILIFETIME] State Change");
             TRACE_L1("Connection to the server is down");
+            MYLOG("Connection to the server is down");
         }
-		MYLOG("[ILIFETIME] State Change");
         EXIT
     }
 
