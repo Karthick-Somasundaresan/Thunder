@@ -1200,6 +1200,8 @@ namespace WPEFramework {
 			uint64_t _scheduledTime;
 			string _versionstring;
 		};
+		extern template class LinkType<Core::JSON::IElement>;
+		extern template class LinkType<Core::JSON::IMessagePack>;
 
 		// This is for backward compatibility. Please use the template and not the typedef below!!!
 		typedef LinkType<Core::JSON::IElement> DEPRECATED Client;
