@@ -31,5 +31,5 @@ ENUM_CONVERSION_END(WPEFramework::JSONRPC::JSONPluginState)
 }
 
 
-template class LinkType<Core::JSON::IElement>;
-template class LinkType<Core::JSON::IMessagePack>;
+template class WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>;
+template class WPEFramework::JSONRPC::LinkType<Core::JSON::IMessagePack>;
