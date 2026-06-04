@@ -157,7 +157,7 @@ namespace WPEFramework {
 					{
 						_parent.StateChange();
 					}
-					virtual bool IsIdle() const
+					virtual bool IsIdle() const override
 					{
 						return (true);
 					}
