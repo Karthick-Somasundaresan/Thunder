@@ -235,6 +235,10 @@ namespace PluginHost {
 
                 _sendQueue.emplace_back(text);
 
+#ifdef __CORE_WARNING_REPORTING__
+                REPORT_OUTOFBOUNDS_WARNING(WarningReporting::ChannelQueueBacklog, _sendQueue.size(), _ID);
+#endif
+
                 bool trigger = (_sendQueue.size() == 1);
 
                 BaseClass::Unlock();
@@ -251,6 +255,10 @@ namespace PluginHost {
                 BaseClass::Lock();
 
                 _sendQueue.emplace_back(entry);
+
+#ifdef __CORE_WARNING_REPORTING__
+                REPORT_OUTOFBOUNDS_WARNING(WarningReporting::ChannelQueueBacklog, _sendQueue.size(), _ID);
+#endif
 
                 bool trigger = (_sendQueue.size() == 1);
 

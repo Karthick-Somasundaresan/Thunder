@@ -42,6 +42,7 @@ namespace WarningReporting {
                 ANNOUNCE_WARNING(JobTooLongWaitingInQueue);
                 ANNOUNCE_WARNING(TooLongDecrypt);
                 ANNOUNCE_WARNING(JobActiveForTooLong);
+                ANNOUNCE_WARNING(ChannelQueueBacklog);
             }
         } ControlsRegistration;
 

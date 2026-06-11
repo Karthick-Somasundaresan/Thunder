@@ -39,6 +39,7 @@
     #pragma clang system_header
 #endif
 
+#define __CORE_WARNING_REPORTING__
 #ifndef __CORE_WARNING_REPORTING__
 
 #define ANNOUNCE_WARNING(CATEGORY)

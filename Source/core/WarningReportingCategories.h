@@ -339,5 +339,54 @@ namespace WarningReporting {
         uint8_t _total;
     };
 
+    class EXTERNAL ChannelQueueBacklog {
+    public:
+        ChannelQueueBacklog(const ChannelQueueBacklog&) = delete;
+        ChannelQueueBacklog& operator=(const ChannelQueueBacklog&) = delete;
+
+        ChannelQueueBacklog()
+            : _channelId(0)
+        {
+        }
+        ~ChannelQueueBacklog() = default;
+
+        bool Analyze(const char[], const char[], const uint32_t channelId)
+        {
+            _channelId = channelId;
+            return true;
+        }
+
+        uint16_t Serialize(uint8_t buffer[], const uint16_t length) const
+        {
+            if (sizeof(_channelId) <= length) {
+                memcpy(buffer, &_channelId, sizeof(_channelId));
+                return static_cast<uint16_t>(sizeof(_channelId));
+            }
+            return 0;
+        }
+
+        uint16_t Deserialize(const uint8_t buffer[], const uint16_t length)
+        {
+            if (sizeof(_channelId) <= length) {
+                memcpy(&_channelId, buffer, sizeof(_channelId));
+                return static_cast<uint16_t>(sizeof(_channelId));
+            }
+            return 0;
+        }
+
+        void ToString(string& visitor, const int64_t actualValue, const int64_t maxValue) const
+        {
+            visitor = Core::Format(_T("Channel [%u] outgoing queue backlog"), _channelId);
+            visitor += Core::Format(_T(", value %" PRId64 " [messages], max allowed %" PRId64), actualValue, maxValue);
+        };
+
+        // Report at 20 messages, Warning at 50 messages backlog
+        static constexpr uint32_t DefaultWarningBound = { 50 };
+        static constexpr uint32_t DefaultReportBound = { 20 };
+
+    private:
+        uint32_t _channelId;
+    };
+
 }
 }
